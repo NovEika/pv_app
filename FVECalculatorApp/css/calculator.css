@@ -1,0 +1,85 @@
+body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url("calculator_fve.jpg");
+    background-size: cover;
+    background-position: center;
+
+}
+
+.form-container {
+    background-color: rgba(255, 255, 255, 1);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+    text-align: left;
+    justify-content: space-evenly;
+    flex-direction: column;
+}
+
+h1 {
+    /*margin-bottom: 20px;*/
+    font-size: 24px;
+    text-align: center;
+}
+
+.radio-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.radio-group label {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input, textarea, button {
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #007BFF;
+    color: white;
+    cursor: pointer;
+    border: none;
+    align-self: flex-end;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+input:focus, textarea:focus, button:focus {
+    outline: 2px solid #0056b3; /* Adds a focus outline for better accessibility */
+}
+
+@media (max-width: 600px) {
+    .form-container {
+        padding: 15px;
+    }
+
+    input, textarea, button {
+        font-size: 14px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+}
