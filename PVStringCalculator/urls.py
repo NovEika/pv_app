@@ -35,6 +35,6 @@ urlpatterns = [
     path('add-panel/', AddPanelView.as_view(), name='panel'),
     path('panels/', PanelsView.as_view(), name='panels'),
     path('profile/engineer/<int:id>/', EngineerProjectView.as_view(), name='engineer_project'),
-    path('profile/solutions/<int:id>/', SolutionsView.as_view(), name='solutions'),
-    path('profile/engineer/solutions/<int:id>/', SolutionsView.as_view(), name='solutions_engineer'),
+    path('profile/solutions/<int:proj_id>/', SolutionsView.as_view(), name='solutions'),
+    path('profile/engineer/solutions/<int:proj_id>/', SolutionsView.as_view(), name='solutions_engineer'),
 ]

@@ -443,10 +443,18 @@ class EngineerProjectView(LoginRequiredMixin, View):
 
 
 class SolutionsView(LoginRequiredMixin, View):
-    def get(self, request, eng_id):
-        solutions = Solution.objects.filter(owner_id=eng_id)
-        return render(request, 'solutions.html', {'solutions': solutions})
+    def get(self, request, proj_id):
+        project = Project.objects.get(pk=proj_id)
+        solution_ids = SolutionProject.objects.filter(project=project).values_list('solution_id', flat=True)
+        solutions = Solution.objects.filter(id__in=solution_ids)
 
+        string_pairs = StringPair.objects.filter(solution__in=solutions)
+
+        return render(request, 'solutions.html', {
+            'project': project,
+            'solutions': solutions,
+            'string_pairs': string_pairs
+        })
 
 
 class LogoutView(View):
