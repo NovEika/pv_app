@@ -10,12 +10,13 @@
                 <a href="{% url 'engineer_project' engineer.id %}">{{ engineer.first_name }} {{ engineer.last_name }}</a>
             </li>
         {% endfor %}
+        
     {% else %}
         <h2>Projects</h2>
         {% for project in projects %}
-        <li>
-            <a href="{% url 'solutions' solution.id %}">{{ project.project_name }}</a>
-        </li>
+                <div>
+                    <a href="{% url 'solutions' project.id %}">{{ project.project_name }}</a>
+                </div>
         {% endfor %}
     {% endif %}
 {% endblock %}

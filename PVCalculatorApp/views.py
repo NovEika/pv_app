@@ -425,32 +425,28 @@ class ProfileView(LoginRequiredMixin, View):
 
         if user.role == 'engineer':
             solutions = Solution.objects.filter(owner_id=user.id)
-
-            for solution in solutions:
-                projects_id = SolutionProject.objects.filter(solution_id=solution.id).values_list('project_id',
-                                                                                                  flat=True)
-                projects.extend(Project.objects.filter(id__in=projects_id))
+            project_ids = SolutionProject.objects.filter(solution__in=solutions).values_list('project_id', flat=True)
+            projects = Project.objects.filter(id__in=project_ids)
 
         return render(request, 'profile.html', {'engineers': engineers, 'solutions': solutions,
                                                 'projects': projects})
 
 
 class EngineerProjectView(LoginRequiredMixin, View):
-    def get(self, request):
-        engineer_id = request.GET.get('id')
-        # print(engineer_id)
-        solutions = Solution.objects.filter(owner_id=engineer_id)
-        projects = []
-        for _ in solutions:
+    class EngineerProjectView(LoginRequiredMixin, View):
+        def get(self, request, eng_id):
+            solutions = Solution.objects.filter(owner_id=eng_id)
             project_ids = SolutionProject.objects.filter(solution__in=solutions).values_list('project_id', flat=True)
             projects = Project.objects.filter(id__in=project_ids)
 
-        return render(request, 'engineer_project.html', {'projects': projects})
+            return render(request, 'engineer_project.html', {'projects': projects})
 
 
 class SolutionsView(LoginRequiredMixin, View):
-    def get(self, request):
-        project_id = request.GET.get('id')
+    def get(self, request, eng_id):
+        solutions = Solution.objects.filter(owner_id=eng_id)
+        return render(request, 'solutions.html', {'solutions': solutions})
+
 
 
 class LogoutView(View):
