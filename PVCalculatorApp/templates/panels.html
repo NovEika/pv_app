@@ -1,0 +1,9 @@
+{%  extends 'base.html' %}
+
+{% block title %}Panels{% endblock %}
+
+{% block content %}
+    {% for panel in panels %}
+        {{ panel.name }}
+    {% endfor %}
+{% endblock %}

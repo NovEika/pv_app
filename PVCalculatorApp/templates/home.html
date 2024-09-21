@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block extra_styles %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="tiles-container">
+        <div class="tile" onclick="window.location='/panels/'">
+            <h2>Databáze panelů</h2>
+            <img src="{% static 'css/project-work-icon.png' %}" alt="icon" class="tile-icon">
+        </div>
+    
+        <div class="tile" onclick="window.location='/add-panel/'">
+            <h2>Přidat panel</h2>
+            <img src="{% static 'css/measurement-tool-icon.png' %}" alt="icon" class="tile-icon">
+        </div>
+    
+         <div class="tile" onclick="window.location='/inverters/'">
+            <h2>Databáze střídačů</h2>
+            <img src="{% static 'css/computer-engineering-icon.png' %}" alt="icon" class="tile-icon">
+        </div>
+        
+        <div class="tile" onclick="window.location='/add-inverter/'">
+            <h2>Přidat střídač</h2>
+           <img src="{% static 'css/geometry-icon.png' %}" alt="icon" class="tile-icon">
+        </div>
+    
+         <div class="tile" onclick="window.location='/calculator/'">
+            <h2>Kalkulačka stringů</h2>
+            <img src="{% static 'css/calculator-icon.png' %}" alt="icon" class="tile-icon">
+        </div>
+    </section>
+{% endblock %}

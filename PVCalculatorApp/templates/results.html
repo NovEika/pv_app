@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+ 
+{% block title %}Results{% endblock %}
+
+{% block extra_styles %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/results.css' %}">
+{% endblock %}
+
+{% block content %}
+    <h2>{{ project.project_name }}</h2>
+    <h3>{{ string_pairs.first.result }}</h3>
+    <table>
+    <thead>
+        <tr>
+            {% for pair in string_pairs %}
+                <th>{{ pair.string1 }}</th>
+                <th class="pair_end">{{ pair.string2 }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+             {% for pair in string_pairs %}
+                <td>{{ forloop.counter }}.1</td>
+                <td class="pair_end">{{ forloop.counter }}.2</td>
+             {% endfor %}
+        </tr>
+    </tbody>
+</table>
+{% endblock %}

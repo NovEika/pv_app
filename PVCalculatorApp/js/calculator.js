@@ -11,9 +11,25 @@ document.addEventListener('DOMContentLoaded', function(event){
          if(dataTypeManual.checked){
             formManual.style.display = 'block';
             formDatabase.style.display = 'none';
+
+            let hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'manual_input';
+            hiddenInput.value = '1';
+            formManual.appendChild(hiddenInput)
+
         }else if(dataTypeDatabase.checked){
             formManual.style.display = 'none';
             formDatabase.style.display = 'block';
+
+            let hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'model_selection';
+            hiddenInput.value = '1';
+            formDatabase.appendChild(hiddenInput);
+
+            let manualInput = document.querySelector('input[name="manual_input"]');
+            if (manualInput) manualInput.remove();
     }
         })
     })

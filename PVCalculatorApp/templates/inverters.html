@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+    
+{% block title %}Inverters{% endblock %}
+
+{% block content %}
+    {% for inverter in inverters %}
+        <p>{{ inverter.name }}</p>
+    {% endfor %}
+{% endblock %}
