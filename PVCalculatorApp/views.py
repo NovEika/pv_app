@@ -497,14 +497,18 @@ class ProfileView(LoginRequiredMixin, View):
 
         if user.role == 'group_leader':
             engineers = MyUser.objects.filter(group_leader_id=user.id)
+            return render(request, 'profile.html', {'engineers': engineers, 'solutions': solutions,
+                                                    'projects': projects})
 
         if user.role == 'engineer':
             solutions = Solution.objects.filter(owner_id=user.id)
             project_ids = SolutionProject.objects.filter(solution__in=solutions).values_list('project_id', flat=True)
             projects = Project.objects.filter(id__in=project_ids)
+            return render(request, 'profile.html', {'solutions': solutions,
+                                                    'projects': projects})
 
-        return render(request, 'profile.html', {'engineers': engineers, 'solutions': solutions,
-                                                'projects': projects})
+        # return render(request, 'profile.html', {'engineers': engineers, 'solutions': solutions,
+        #                                         'projects': projects})
 
 
 # View of specific engineer's projects for group leaders
@@ -519,8 +523,9 @@ class EngineerProjectView(LoginRequiredMixin, View):
 
 # View of solutions for particular project
 class SolutionsView(LoginRequiredMixin, View):
-    def get(self, request, eng_id, proj_id):
-        engineer = MyUser.objects.get(pk=eng_id)
+    def get(self, request, proj_id, eng_id=None):
+        if eng_id is not None:
+            engineer = MyUser.objects.get(pk=eng_id)
         project = Project.objects.get(pk=proj_id)
         solution_ids = SolutionProject.objects.filter(project=project).values_list('solution_id', flat=True)
         solutions = Solution.objects.filter(id__in=solution_ids)
@@ -531,7 +536,7 @@ class SolutionsView(LoginRequiredMixin, View):
             'project': project,
             'solutions': solutions,
             'string_pairs': string_pairs,
-            'engineer': engineer
+            'engineer': engineer if eng_id else None
         })
 
 
