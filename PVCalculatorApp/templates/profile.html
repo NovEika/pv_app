@@ -6,15 +6,15 @@
     {% if engineers %}
         <h2>Engineers</h2>
         {% for engineer in engineers %}
-            <li>
+            <div class="list-tile">
                 <a href="{% url 'engineer_project' engineer.id %}">{{ engineer.first_name }} {{ engineer.last_name }}</a>
-            </li>
+            </div>
         {% endfor %}
         
     {% else %}
         <h2>Projects</h2>
         {% for project in projects %}
-                <div>
+                <div class="list-tile">
                     <a href="{% url 'solutions' project.id %}">{{ project.project_name }}</a>
                 </div>
         {% endfor %}

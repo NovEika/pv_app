@@ -4,6 +4,11 @@
 
 {% block content %}
     {% for project in projects %}
-        <p>{{ project.project_name }}</p>
+        <div class="list-tile">
+            <a href="{% url 'solutions_engineer' eng_id=eng_id proj_id=project.id %}">{{ project.project_name }}</a>
+        </div>
     {% endfor %}
+    
 {% endblock %}
+
+ 

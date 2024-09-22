@@ -2,25 +2,15 @@
 
 {% block title %}String Calculator{% endblock %}
 
-{% block extra_styles %}
-    {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/calculator.css' %}">
-{% endblock %}
-
 {% block scripts %}
+    {% load static %}
     <script src="{% static 'js/calculator.js' %}"></script>
 {% endblock %}
 
 {% block content %}
-<div class="form-container">
-
-    <h1>String Calculator</h1>
-     
-    <form method="post">
-        {% csrf_token %}
-       
-    </form>
+<h1>String Calculator</h1>
     
+<div class="form-container">
     <div class="radio-group">
         <input type="radio" id="manual" name="data_type" value="Zadat ručně">
         <label for="manual">Zadat ručně</label>
@@ -40,8 +30,8 @@
         <input type="number" id="min_input_voltage" name="min_input_voltage" placeholder="Minimální napětí ve V"><br>
         <label for="max_input_voltage">Maximální napětí na vstupu</label>
         <input type="number" id="max_input_voltage" name="max_input_voltage" placeholder="Maximální napětí ve V"><br>
-        <label for="max_inverter_count">Maximální počet střídačů</label>
-        <input type="number" id="max_inverter_count" name="max_mppt_count" placeholder="Maximální počet střídačů"><br>
+        <label for="max_mppt_count">Počet mpp trackerů</label>
+        <input type="number" id="max_mppt_count" name="max_mppt_count" placeholder="Počet mppt"><br>
         <br>
 
         <h2>Panel</h2>
@@ -61,7 +51,9 @@
         <label for="panel_count">Celkový počet panelů</label>
         <input type="number" id="panel_count" name="panel_count" placeholder="Celkový počet panelů">
         <br><br>
-        <input type="submit" value="Vypočítat">
+         <div class="button-container">
+            <input type="submit" value="Vypočítat" class="button">
+        </div>
     </form><br>
 
     <form method="post" id="database_form" style="display: none">
@@ -87,7 +79,9 @@
         <label for="panel_count_db">Celkový počet panelů</label>
         <input type="number" id="panel_count_db" name="panel_count" placeholder="Celkový počet panelů">
         <br><br>
-        <input type="submit" value="Vypočítat">
+         <div class="button-container">
+            <input type="submit" value="Vypočítat" class="button">
+        </div>
     </form><br>
 </div>
 {% if error_messages %}

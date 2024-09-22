@@ -4,7 +4,7 @@
 
 {% block content %}
     <h1>Střídač</h1>
-    <form method="post">
+    <form method="post" class="form-container">
         {% csrf_token %}
         <label for="name">Název střídače</label>
         <input type="text" id="name" name="name" placeholder="Název"><br>
@@ -16,7 +16,9 @@
         <input type="number" id="min_input_voltage" name="min_input_voltage" placeholder="Minimální napětí V"><br>
         <label for="max_mppt_count">Maximální počet mpp trackerů</label>
         <input type="number" id="max_mppt_count" name="max_mppt_count" placeholder="Maximální počet mpp trackerů"><br><br>
-        <input type="submit" value="Uložit">
+        <div class="button-container">
+            <input type="submit" value="Uložit" class="button">
+        </div>
     </form>
 
 {% endblock %}

@@ -2,8 +2,31 @@
     
 {% block title %}Inverters{% endblock %}
 
+{% block scripts %}
+    {% load static %}
+    <script src="{% static 'js/inverter_panel.js' %}"></script>
+{% endblock %}
+
 {% block content %}
-    {% for inverter in inverters %}
-        <p>{{ inverter.name }}</p>
-    {% endfor %}
+        {% for inverter in inverters %}
+            <div class="list-tile" onclick="toggleDetails({{ inverter.id }})">
+                <div class="list-tile-header">
+                    <h3>{{ inverter.name }}</h3>
+                </div>
+            <div id="details-{{ inverter.id }}" class="list-tile-details" style="display: none">
+                <p>Optimal input voltage: {{ inverter.opt_input_voltage }} V</p>
+                <p>Maximal input voltage: {{ inverter.max_input_voltage }} V</p>
+                <p>Minimal input voltage: {{ inverter.min_input_voltage }} V</p>
+                <p>Mpp tracker count: {{ inverter.max_mppt_count }}</p>
+                <div class="button-container">
+                    <a href="{% url 'edit_inverter' inverter.id %}" class="button">Upravit</a>
+                    <form method="post" action="{% url 'delete_inverter' inverter.id %}">
+                        {% csrf_token %}
+                        <input type="submit" value="Smazat" class="button" style="display:inline;" onclick="return confirm
+                                ('Opravdu smazat střídač {{ inverter.name }}?')">
+                    </form>
+                </div>
+            </div>
+            </div>
+        {% endfor %}
 {% endblock %}

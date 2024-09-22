@@ -17,8 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
+
+from PVCalculatorApp.models import Inverter
 from PVCalculatorApp.views import CalculatorView, AddInverterView, ResultsView, InvertersView, LoginView, HomeView, \
-    RegisterView, AddPanelView, PanelsView, ProfileView, LogoutView, EngineerProjectView, SolutionsView
+    RegisterView, AddPanelView, PanelsView, ProfileView, LogoutView, EngineerProjectView, SolutionsView, \
+    InverterEditView, InverterDeleteView, PanelEditView, PanelDeleteView
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,9 +36,13 @@ urlpatterns = [
     path('results/', ResultsView.as_view(), name='results'),
     path('add-inverter/', AddInverterView.as_view(), name='inverter'),
     path('inverters/', InvertersView.as_view(), name='inverters'),
+    path('edit-inverter/<int:pk>/', InverterEditView.as_view(), name='edit_inverter'),
+    path('delete-inverter/<int:pk>/', InverterDeleteView.as_view(), name='delete_inverter'),
     path('add-panel/', AddPanelView.as_view(), name='panel'),
+    path('edit-panel/<int:pk>/', PanelEditView.as_view(), name='edit_panel'),
+    path('delete-panel/<int:pk>/', PanelDeleteView.as_view(), name='delete_panel'),
     path('panels/', PanelsView.as_view(), name='panels'),
-    path('profile/engineer/<int:id>/', EngineerProjectView.as_view(), name='engineer_project'),
+    path('profile/engineer/<int:eng_id>/', EngineerProjectView.as_view(), name='engineer_project'),
     path('profile/solutions/<int:proj_id>/', SolutionsView.as_view(), name='solutions'),
-    path('profile/engineer/solutions/<int:proj_id>/', SolutionsView.as_view(), name='solutions_engineer'),
+    path('profile/engineer/<int:eng_id>/solutions/<int:proj_id>/', SolutionsView.as_view(), name='solutions_engineer'),
 ]

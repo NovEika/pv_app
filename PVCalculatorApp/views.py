@@ -343,6 +343,41 @@ class InvertersView(LoginRequiredMixin, View):
         return render(request, "inverters.html", {"inverters": inverters})
 
 
+class InverterEditView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        inverter = Inverter.objects.get(pk=pk)
+        form = InverterForm(initial={
+            'name': inverter.name,
+            'opt_input_voltage': inverter.opt_input_voltage,
+            'min_input_voltage': inverter.min_input_voltage,
+            'max_input_voltage': inverter.max_input_voltage,
+            'max_mppt_count': inverter.max_mppt_count,
+        })
+        return render(request, 'edit_inverter.html', {'form': form})
+
+    def post(self, request, pk):
+        inverter = Inverter.objects.get(pk=pk)
+        form = InverterForm(request.POST)
+        if form.is_valid():
+            inverter.name = form.cleaned_data['name']
+            inverter.opt_input_voltage = form.cleaned_data['opt_input_voltage']
+            inverter.min_input_voltage = form.cleaned_data['min_input_voltage']
+            inverter.max_input_voltage = form.cleaned_data['max_input_voltage']
+            inverter.max_mppt_count = form.cleaned_data['max_mppt_count']
+            inverter.save()
+            return redirect('inverters')
+        else:
+            print(form.errors)
+            return render(request, 'edit_inverter.html', {'form': form})
+
+
+class InverterDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        inverter = get_object_or_404(Inverter, pk=pk)
+        inverter.delete()
+        return redirect('inverters')
+
+
 class AddPanelView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'add_panel.html')
@@ -365,6 +400,45 @@ class AddPanelView(LoginRequiredMixin, View):
         else:
             print(form.errors)
             return render(request, 'add_panel.html', {'form': form})
+
+
+class PanelEditView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        panel = Panel.objects.get(pk=pk)
+        form = PanelForm(initial={
+            'name': panel.name,
+            'UocMOD_volt': panel.UocMOD_volt,
+            'TMOD_percent': panel.TMOD_percent,
+            'UmmpMOD_volt': panel.UmmpMOD_volt,
+            'TMOD_pMax_percent': panel.TMOD_pMax_percent,
+            'ISC_amper': panel.ISC_amper,
+            'TMOD_short_percent': panel.TMOD_short_percent,
+        })
+        return render(request, 'edit_panel.html', {'form': form})
+
+    def post(self, request, pk):
+        panel = Panel.objects.get(pk=pk)
+        form = PanelForm(request.POST)
+        if form.is_valid():
+            panel.name = form.cleaned_data['name']
+            panel.UocMOD_volt = form.cleaned_data['UocMOD_volt']
+            panel.TMOD_percent = form.cleaned_data['TMOD_percent']
+            panel.UmmpMOD_volt = form.cleaned_data['UmmpMOD_volt']
+            panel.TMOD_pMax_percent = form.cleaned_data['TMOD_pMax_percent']
+            panel.ISC_amper = form.cleaned_data['ISC_amper']
+            panel.TMOD_short_percent = form.cleaned_data['TMOD_short_percent']
+            panel.save()
+            return redirect('panels')
+        else:
+            print(form.errors)
+            return render(request, 'edit_panel.html', {'form': form})
+
+
+class PanelDeleteView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        panel = get_object_or_404(Panel, pk=pk)
+        panel.delete()
+        return redirect('panels')
 
 
 class PanelsView(LoginRequiredMixin, View):
@@ -433,17 +507,17 @@ class ProfileView(LoginRequiredMixin, View):
 
 
 class EngineerProjectView(LoginRequiredMixin, View):
-    class EngineerProjectView(LoginRequiredMixin, View):
         def get(self, request, eng_id):
             solutions = Solution.objects.filter(owner_id=eng_id)
             project_ids = SolutionProject.objects.filter(solution__in=solutions).values_list('project_id', flat=True)
             projects = Project.objects.filter(id__in=project_ids)
 
-            return render(request, 'engineer_project.html', {'projects': projects})
+            return render(request, 'engineer_project.html', {'projects': projects, 'eng_id': eng_id})
 
 
 class SolutionsView(LoginRequiredMixin, View):
-    def get(self, request, proj_id):
+    def get(self, request, eng_id, proj_id):
+        engineer = MyUser.objects.get(pk=eng_id)
         project = Project.objects.get(pk=proj_id)
         solution_ids = SolutionProject.objects.filter(project=project).values_list('solution_id', flat=True)
         solutions = Solution.objects.filter(id__in=solution_ids)
@@ -453,7 +527,8 @@ class SolutionsView(LoginRequiredMixin, View):
         return render(request, 'solutions.html', {
             'project': project,
             'solutions': solutions,
-            'string_pairs': string_pairs
+            'string_pairs': string_pairs,
+            'engineer': engineer
         })
 
 

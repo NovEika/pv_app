@@ -28,4 +28,9 @@
         </tr>
     </tbody>
 </table>
+    
+{% if engineer %}
+    <p>Vlastník: {{ engineer.first_name }} {{ engineer.last_name }}</p>
+{% endif %}
+
 {% endblock %}
