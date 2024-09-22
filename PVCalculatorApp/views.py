@@ -11,6 +11,8 @@ from PVCalculatorApp.models import *
 
 
 # Create your views here.
+
+#Calculator class calculates optimal string length based on panel and inverter parameters - user input or database selection
 class CalculatorView(LoginRequiredMixin, View):
     def get(self, request):
         form = CalculatorForm()
@@ -23,13 +25,12 @@ class CalculatorView(LoginRequiredMixin, View):
 
     def post(self, request):
         results = []
-        result_low_mppts = []
         error_messages = []
 
+        #Manual form input from user
         if 'manual_input' in request.POST:
             form = CalculatorForm(request.POST)
 
-        # Zkontroluje, zda uživatel vyplnil všechny potřebné údaje
             if form.is_valid():
                 opt_input_voltage = form.cleaned_data['opt_input_voltage']
                 min_input_voltage = form.cleaned_data['min_input_voltage']
@@ -45,11 +46,10 @@ class CalculatorView(LoginRequiredMixin, View):
                 project_name = form.cleaned_data['project_name']
 
             else:
-                print(form.errors)
                 return render(request, 'calculator.html', {'form': form})
 
+        #User selects panel and inverter from the database
         elif 'model_selection' in request.POST:
-            # Získání ID panelu a střídače
             panel_id = request.POST.get('panel_db')
             inverter_id = request.POST.get('inverter_db')
 
@@ -88,7 +88,6 @@ class CalculatorView(LoginRequiredMixin, View):
 
         else:
             form = CalculatorForm(request.POST)
-            print(form.errors)
             return render(request, 'calculator.html', {'form': form})
 
         result_low_mppts = count_strings_for_lowest_mppts(UocMOD_volt, TMOD, UmmpMOD, TMOD_pMax, max_input_voltage,
@@ -106,7 +105,7 @@ class CalculatorView(LoginRequiredMixin, View):
             error_messages.append('Wrong input data - the calculation could not be performed')
             return render(request, 'calculator.html', {'form': form, 'error_messages': error_messages})
 
-        # Uložení výsledků do databáze
+        #After calculation is done, data are saved to the database
         project = Project.objects.create(project_name=project_name)
         solution = Solution.objects.create(nDCmaxINV=nDCmaxINV, nDCminINV=nDCminINV,
                                            nDCoptINV=nDCoptINV, owner=request.user)
@@ -117,51 +116,47 @@ class CalculatorView(LoginRequiredMixin, View):
 
         SolutionProject.objects.create(project=project, solution=solution)
 
-        request.session['results'] = results
-
         request.session['project_id'] = project.id
         request.session['solution_id'] = solution.id
-
-
 
         return redirect('results')
 
 
-# Stanoveni maximalniho napeti naprazdno
+# Calculates maximum open-circuit voltage/Stanoveni maximalniho napeti naprazdno
 def count_UDC_max_MOD(UocMOD, TMOD):
     UDC_max_MOD = UocMOD * (1 + TMOD * (-20-25) /100)
     return  UDC_max_MOD
 
-# Stanovení minimálního napětí
+# Calculates minimum voltage/Stanovení minimálního napětí
 def count_UDC_min_MOD(UmmpMOD, TMOD_Pmax):
     UDC_min_MOD = UmmpMOD * (1 + (TMOD_Pmax * (70-25) / 100))
     return UDC_min_MOD
 
-# Výpočet maximálního zkratového proudu
+# Calculates maximum short-circuit current/Výpočet maximálního zkratového proudu
 def count_IDC_max_STR(ISC, TMOD_short):
     IDC_max_STR = ISC * (1 + (TMOD_short * (70-25)) / 100)
     return IDC_max_STR
 
-#Výpočet maximálního počtu panelů na string
+# Calculates maximum panel count per string/Výpočet maximálního počtu panelů na string
 def count_max_panel(max_input_voltage, UDC_max_MOD):
     panel_max_fl = max_input_voltage / UDC_max_MOD
     panel_max = math.floor(panel_max_fl)
     return panel_max
 
-# Výpočet minimálního počtu panelů na string
+# Calculates minimum panel count per string/Výpočet minimálního počtu panelů na string
 def count_min_panel(min_input_voltage, UDC_min_MOD):
     panel_min_fl = min_input_voltage / UDC_min_MOD
     panel_min = math.ceil(panel_min_fl)
     return panel_min
 
-# Výpočet optimálního počtu panelů na string
+# Calculates optimal panel count per string/Výpočet optimálního počtu panelů na string
 def count_optimal_panel(opt_input_voltage, UmmpMOD):
     panel_optimal_fl = opt_input_voltage / UmmpMOD
     panel_optimal = round(panel_optimal_fl)
     return panel_optimal
 
 
-# Count strings for lowest possible count of mppts
+# Calculates strings for lowest possible count of mppts
 def count_strings_for_lowest_mppts(UocMOD, TMOD, UmmpMOD, TMOD_pMax, max_input_voltage,
                                    min_input_voltage, max_inverter_count, panel_count):
     # Typical mppt count for one inverter, can be different if Sungrow inverters are used
@@ -297,7 +292,7 @@ def count_strings_for_lowest_mppts(UocMOD, TMOD, UmmpMOD, TMOD_pMax, max_input_v
 #                 else:
 #                     a += 1
 
-
+# Displays latest results from database based on ids kept in sessions
 class ResultsView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         results = request.session.get('results', [])
@@ -313,7 +308,7 @@ class ResultsView(LoginRequiredMixin, View):
         return render(request, "results.html", {"results": results, "string_pairs": string_pairs,
                                                 "project": project, "solution": solution})
 
-
+# View for saving new inverter to the database
 class AddInverterView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'add_inverter.html')
@@ -321,7 +316,6 @@ class AddInverterView(LoginRequiredMixin, View):
     def post(self, request):
         form = InverterForm(request.POST)
         if form.is_valid():
-            # print("valid")
             name = form.cleaned_data['name']
             opt_input_voltage = form.cleaned_data['opt_input_voltage']
             min_input_voltage = form.cleaned_data['min_input_voltage']
@@ -333,16 +327,15 @@ class AddInverterView(LoginRequiredMixin, View):
                                              max_input_voltage=max_input_voltage, max_mppt_count=max_mppt_count)
             return redirect('inverters')
         else:
-            print(form.errors)
             return render(request, 'add_inverter.html', {'form': form})
 
-
+# Displays all inverters in database
 class InvertersView(LoginRequiredMixin, View):
     def get(self, request):
         inverters = Inverter.objects.all()
         return render(request, "inverters.html", {"inverters": inverters})
 
-
+# View for editing existing inverter in database
 class InverterEditView(LoginRequiredMixin, View):
     def get(self, request, pk):
         inverter = Inverter.objects.get(pk=pk)
@@ -371,6 +364,7 @@ class InverterEditView(LoginRequiredMixin, View):
             return render(request, 'edit_inverter.html', {'form': form})
 
 
+# View for deleting existing inverter from database
 class InverterDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         inverter = get_object_or_404(Inverter, pk=pk)
@@ -378,6 +372,7 @@ class InverterDeleteView(LoginRequiredMixin, View):
         return redirect('inverters')
 
 
+# View for adding a new panel to the database
 class AddPanelView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'add_panel.html')
@@ -402,6 +397,7 @@ class AddPanelView(LoginRequiredMixin, View):
             return render(request, 'add_panel.html', {'form': form})
 
 
+# View for editing existing panel in database
 class PanelEditView(LoginRequiredMixin, View):
     def get(self, request, pk):
         panel = Panel.objects.get(pk=pk)
@@ -434,19 +430,21 @@ class PanelEditView(LoginRequiredMixin, View):
             return render(request, 'edit_panel.html', {'form': form})
 
 
+# View for deleting existing panel from database
 class PanelDeleteView(LoginRequiredMixin, View):
     def post(self, request, pk):
         panel = get_object_or_404(Panel, pk=pk)
         panel.delete()
         return redirect('panels')
 
-
+# Displays all panels in database
 class PanelsView(LoginRequiredMixin, View):
     def get(self, request):
         panels = Panel.objects.all()
         return render(request, 'panels.html', {"panels": panels})
 
 
+# View for login
 class LoginView(View):
     def get(self, request):
         return render(request, 'login.html')
@@ -466,11 +464,13 @@ class LoginView(View):
             return render(request, 'login.html')
 
 
+# Home view with tile navigation
 class HomeView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'home.html')
 
 
+# View for creating a new user
 class RegisterView(View):
     def get(self, request):
         form = MyUserRegistrationForm()
@@ -487,6 +487,7 @@ class RegisterView(View):
         return render(request, 'register.html', {"form": form})
 
 
+# Profile view shows list of engineers to group leaders, list of projects to engineers
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
@@ -506,6 +507,7 @@ class ProfileView(LoginRequiredMixin, View):
                                                 'projects': projects})
 
 
+# View of specific engineer's projects for group leaders
 class EngineerProjectView(LoginRequiredMixin, View):
         def get(self, request, eng_id):
             solutions = Solution.objects.filter(owner_id=eng_id)
@@ -515,6 +517,7 @@ class EngineerProjectView(LoginRequiredMixin, View):
             return render(request, 'engineer_project.html', {'projects': projects, 'eng_id': eng_id})
 
 
+# View of solutions for particular project
 class SolutionsView(LoginRequiredMixin, View):
     def get(self, request, eng_id, proj_id):
         engineer = MyUser.objects.get(pk=eng_id)
@@ -532,6 +535,7 @@ class SolutionsView(LoginRequiredMixin, View):
         })
 
 
+# Logout view
 class LogoutView(View):
     def get(self, request):
         logout(request)

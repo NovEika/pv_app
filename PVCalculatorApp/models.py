@@ -27,6 +27,8 @@ class MyUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+
+# Group leaders should see projects from all of his engineers, every engineer only sees his projects
 class MyUser(AbstractUser, PermissionsMixin):
     username = None
     GROUP_LEADER = 'group_leader'
@@ -56,7 +58,7 @@ class MyUser(AbstractUser, PermissionsMixin):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
-
+# Inverter class maintains optimal, maximum and minimum voltage of inverter and mpp tracker count
 #třída střídače pro zadání optimáního, maximálního a minimálního napětí střídače, a maximálního počtu mpp trackerů
 class Inverter(models.Model):
     name = models.CharField(max_length=32)
@@ -66,7 +68,7 @@ class Inverter(models.Model):
     max_mppt_count = models.IntegerField()
 
 
-#třída panelu
+# Panel class maintains open-circuit and maximum power voltage, temp coefficients, short-circuit current
 class Panel(models.Model):
     name = models.CharField(max_length=32)
     #napětí FV modulu naprázdno
@@ -83,22 +85,27 @@ class Panel(models.Model):
     TMOD_short_percent = models.FloatField()
 
 
-#název projektu nebo lokace
+# Name of project or location
 class Project(models.Model):
     project_name = models.CharField(max_length=64, default="Unnamed Project")
 
 
+# Solution model is connected to string pairs, shows max, min and optimal panel count for solution
 class Solution(models.Model):
-    # name = models.CharField(max_length=32)
     nDCmaxINV = models.IntegerField()
     nDCminINV = models.IntegerField()
     nDCoptINV = models.IntegerField()
     owner = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='solutions')
 
+
+# Many-to-many relationship between solution and project, ensures correct connection
 class SolutionProject(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True)
     solution = models.ForeignKey(Solution, on_delete=models.CASCADE, null=True)
 
+
+# String pairs are part of solution, every solution has many string pairs (based on mppt count for solution)
+# Result choices determine the type of result user is getting
 class StringPair(models.Model):
     LOW_MPPT = 'low_mppt'
 
