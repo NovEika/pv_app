@@ -3,6 +3,12 @@
 {% block title %}Profil{% endblock %}
 
 {% block content %}
+    <h2>Profil</h2>
+    <div class="form-container">
+        <p>Jméno: {{ user.first_name }} {{ user.last_name }}</p>
+        <p>Role: {{ user.get_role_display }}</p>
+        <p>Email: {{ user.email }}</p>
+    </div>
     {% if engineers %}
         <h2>Engineers</h2>
         {% for engineer in engineers %}

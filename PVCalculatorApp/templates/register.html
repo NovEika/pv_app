@@ -1,8 +1,10 @@
 {%  extends 'base.html' %}
 
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/register.css' %}">
-<script src="{% static 'js/register.js' %}"></script>
+{#<link rel="stylesheet" type="text/css" href="{% static 'css/register.css' %}">#}
+{% block scripts %}
+    <script src="{% static 'js/register.js' %}"></script>
+{% endblock %}
 
 {% block title %}Register{% endblock %}
 
