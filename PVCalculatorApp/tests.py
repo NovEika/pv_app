@@ -1,4 +1,3 @@
-from django.test import TestCase
 import pytest
 from django.urls import reverse
 
@@ -7,14 +6,29 @@ from .models import Inverter, MyUser, Panel, Project
 
 # Create your tests here.
 @pytest.mark.django_db
-def test_inverter_creation():
-    inverter = Inverter.objects.create(
-        name="Test Inverter",
-        opt_input_voltage=200.0,
-        max_input_voltage=600.0,
-        min_input_voltage=100.0,
-        max_mppt_count=24
+def test_inverter_creation(client):
+    MyUser.objects.create_user(
+        email="testuser@testuser.com",
+        password="password1234",
     )
+    client.login(email="testuser@testuser.com", password="password1234")
+
+    url = reverse('inverter')
+
+    data = {
+        'name': "Test Inverter",
+        'opt_input_voltage': 200.0,
+        'max_input_voltage': 600.0,
+        'min_input_voltage': 100.0,
+        'max_mppt_count': 24
+    }
+
+    response = client.post(url, data)
+
+    assert response.status_code == 302
+
+    inverter = Inverter.objects.get(name="Test Inverter")
+
 
     assert inverter.name == "Test Inverter"
     assert inverter.opt_input_voltage == 200.0
@@ -24,15 +38,28 @@ def test_inverter_creation():
 
 
 @pytest.mark.django_db
-def test_invalid_inverter_creation():
-    with pytest.raises(ValueError):
-        Inverter.objects.create(
-            name="Invalid Inverter",
-            opt_input_voltage="abcde",
-            max_input_voltage=600.0,
-            min_input_voltage=100.0,
-            max_mppt_count=24
-        )
+def test_invalid_inverter_creation(client):
+    MyUser.objects.create_user(
+        email="testuser@testuser.com",
+        password="password1234",
+    )
+    client.login(email="testuser@testuser.com", password="password1234")
+
+    url = reverse('inverter')
+
+    data = {
+        'name': "Test Inverter",
+        'opt_input_voltage': 'abcde',
+        'max_input_voltage': 600.0,
+        'min_input_voltage': 100.0,
+        'max_mppt_count': 24
+    }
+
+    response = client.post(url, data)
+
+    assert response.status_code == 200
+    assert 'opt_input_voltage' in response.context['form'].errors
+
 
 @pytest.mark.django_db
 def test_create_myuser():
@@ -43,6 +70,7 @@ def test_create_myuser():
 
     assert user.email == "testuser@testuser.com"
     assert user.password == "password1234"
+
 
 @pytest.mark.django_db
 def test_login_myuser(client):
@@ -55,6 +83,7 @@ def test_login_myuser(client):
 
     assert response.status_code == 302
     assert response.wsgi_request.user.is_authenticated
+
 
 @pytest.mark.django_db
 def test_calculator_view_post_manual_input(client):
@@ -80,6 +109,9 @@ def test_calculator_view_post_manual_input(client):
 
     assert response.status_code == 302
     assert Project.objects.filter(project_name='Test project').exists()
+
+
+
 
 @pytest.mark.django_db
 def test_calculator_view_post_model_selection(client):
