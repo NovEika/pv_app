@@ -1,18 +1,18 @@
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from .forms import CalculatorForm, InverterForm, MyUserRegistrationForm, PanelForm
 import math
 
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views import View
+
 from PVCalculatorApp.models import *
+from .forms import CalculatorForm, InverterForm, MyUserRegistrationForm, PanelForm
 
 
 # Create your views here.
 
-#Calculator class calculates optimal string length based on panel and inverter parameters - user input or database selection
+# Calculator class calculates optimal string length based on panel and inverter parameters - user input or database selection
 class CalculatorView(LoginRequiredMixin, View):
     def get(self, request):
         form = CalculatorForm()
@@ -20,15 +20,15 @@ class CalculatorView(LoginRequiredMixin, View):
         inverters = Inverter.objects.all()
 
         return render(request, 'calculator.html', {"form": form,
-                                                                        "panels": panels,
-                                                                        "inverters": inverters})
+                                                   "panels": panels,
+                                                   "inverters": inverters})
 
     def post(self, request):
         results = []
         error_messages = []
 
-        #Manual form input from user
         if 'manual_input' in request.POST:
+            # Manual form input from user
             form = CalculatorForm(request.POST)
 
             if form.is_valid():
@@ -36,19 +36,20 @@ class CalculatorView(LoginRequiredMixin, View):
                 min_input_voltage = form.cleaned_data['min_input_voltage']
                 max_input_voltage = form.cleaned_data['max_input_voltage']
                 max_mppt_count = form.cleaned_data['max_mppt_count']
-                UocMOD_volt = form.cleaned_data['UocMOD_volt']
-                TMOD = form.cleaned_data['TMOD_percent']
-                UmmpMOD = form.cleaned_data['UmmpMOD_volt']
-                TMOD_pMax = form.cleaned_data['TMOD_pMax_percent']
-                ISC = form.cleaned_data['ISC_amper']
-                TMOD_short = form.cleaned_data['TMOD_short_percent']
+                uoc_mod = form.cleaned_data['uoc_mod_volt']
+                tmod = form.cleaned_data['tmod_percent']
+                ummp_mod = form.cleaned_data['ummp_mod_volt']
+                tmod_p_max = form.cleaned_data['tmod_p_max_percent']
+                isc = form.cleaned_data['isc_amper']
+                tmod_short = form.cleaned_data['tmod_short_percent']
                 panel_count = form.cleaned_data['panel_count']
                 project_name = form.cleaned_data['project_name']
 
             else:
+                print(form.errors)
                 return render(request, 'calculator.html', {'form': form})
 
-        #User selects panel and inverter from the database
+        # User selects panel and inverter from the database
         elif 'model_selection' in request.POST:
             panel_id = request.POST.get('panel_db')
             inverter_id = request.POST.get('inverter_db')
@@ -56,10 +57,10 @@ class CalculatorView(LoginRequiredMixin, View):
             panel = get_object_or_404(Panel, pk=panel_id)
             inverter = get_object_or_404(Inverter, pk=inverter_id)
 
-            UocMOD_volt = float(panel.UocMOD_volt)
-            TMOD = float(panel.TMOD_percent)
-            UmmpMOD = float(panel.UmmpMOD_volt)
-            TMOD_pMax = float(panel.TMOD_pMax_percent)
+            uoc_mod = float(panel.uoc_mod_volt)
+            tmod = float(panel.tmod_percent)
+            ummp_mod = float(panel.ummp_mod_volt)
+            tmod_p_max = float(panel.tmod_p_max_percent)
             max_input_voltage = float(inverter.max_input_voltage)
             min_input_voltage = float(inverter.min_input_voltage)
             opt_input_voltage = float(inverter.opt_input_voltage)
@@ -69,18 +70,18 @@ class CalculatorView(LoginRequiredMixin, View):
             project_name = str(request.POST.get('project_name'))
 
             initial_data = {
-                        'opt_input_voltage': inverter.opt_input_voltage,
-                        'min_input_voltage': inverter.min_input_voltage,
-                        'max_input_voltage': inverter.max_input_voltage,
-                        'max_mppt_count': inverter.max_mppt_count,
-                        'UocMOD_volt': panel.UocMOD_volt,
-                        'TMOD_percent': panel.TMOD_percent,
-                        'UmmpMOD_volt': panel.UmmpMOD_volt,
-                        'TMOD_pMax_percent': panel.TMOD_pMax_percent,
-                        'ISC_amper': panel.ISC_amper,
-                        'TMOD_short_percent': panel.TMOD_short_percent,
-                        'panel_count': panel_count,
-                    }
+                'opt_input_voltage': inverter.opt_input_voltage,
+                'min_input_voltage': inverter.min_input_voltage,
+                'max_input_voltage': inverter.max_input_voltage,
+                'max_mppt_count': inverter.max_mppt_count,
+                'uoc_mod_volt': panel.uoc_mod_volt,
+                'tmod_percent': panel.tmod_percent,
+                'ummp_volt': panel.ummp_mod_volt,
+                'tmod_p_max_percent': panel.tmod_p_max_percent,
+                'isc_amper': panel.isc_amper,
+                'tmod_short_percent': panel.tmod_short_percent,
+                'panel_count': panel_count,
+            }
 
             form = CalculatorForm(initial=initial_data)
             if form.is_valid():
@@ -90,14 +91,14 @@ class CalculatorView(LoginRequiredMixin, View):
             form = CalculatorForm(request.POST)
             return render(request, 'calculator.html', {'form': form})
 
-        result_low_mppts = count_strings_for_lowest_mppts(UocMOD_volt, TMOD, UmmpMOD, TMOD_pMax, max_input_voltage,
+        result_low_mppts = count_strings_for_lowest_mppts(uoc_mod, tmod, ummp_mod, tmod_p_max, max_input_voltage,
                                                           min_input_voltage, max_mppt_count, panel_count)
 
-        UDC_max_MOD = count_UDC_max_MOD(UocMOD_volt, TMOD)
-        UDC_min_MOD = count_UDC_min_MOD(UmmpMOD, TMOD_pMax)
-        nDCmaxINV = count_max_panel(max_input_voltage, UDC_max_MOD)
-        nDCminINV = count_min_panel(min_input_voltage, UDC_min_MOD)
-        nDCoptINV = count_optimal_panel(opt_input_voltage, UmmpMOD)
+        udc_max_mod = count_udc_max_mod(uoc_mod, tmod)
+        udc_min_mod = count_udc_min_mod(ummp_mod, tmod_p_max)
+        ndc_max_inv = count_max_panel(max_input_voltage, udc_max_mod)
+        ndc_min_inv = count_min_panel(min_input_voltage, udc_min_mod)
+        ndc_opt_inv = count_optimal_panel(opt_input_voltage, ummp_mod)
 
         results.append(result_low_mppts)
 
@@ -105,10 +106,10 @@ class CalculatorView(LoginRequiredMixin, View):
             error_messages.append('Wrong input data - the calculation could not be performed')
             return render(request, 'calculator.html', {'form': form, 'error_messages': error_messages})
 
-        #After calculation is done, data are saved to the database
+        # After calculation is done, data are saved to the database
         project = Project.objects.create(project_name=project_name)
-        solution = Solution.objects.create(nDCmaxINV=nDCmaxINV, nDCminINV=nDCminINV,
-                                           nDCoptINV=nDCoptINV, owner=request.user)
+        solution = Solution.objects.create(ndc_max_inv=ndc_max_inv, ndc_min_inv=ndc_min_inv,
+                                           ndc_opt_inv=ndc_opt_inv, owner=request.user)
 
         for result in result_low_mppts:
             StringPair.objects.create(string1=result[0], string2=result[1],
@@ -123,52 +124,57 @@ class CalculatorView(LoginRequiredMixin, View):
 
 
 # Calculates maximum open-circuit voltage/Stanoveni maximalniho napeti naprazdno
-def count_UDC_max_MOD(UocMOD, TMOD):
-    UDC_max_MOD = UocMOD * (1 + TMOD * (-20-25) /100)
-    return  UDC_max_MOD
+def count_udc_max_mod(uoc_mod, tmod):
+    udc_max_mod = uoc_mod * (1 + tmod * (-20 - 25) / 100)
+    return udc_max_mod
+
 
 # Calculates minimum voltage/Stanovení minimálního napětí
-def count_UDC_min_MOD(UmmpMOD, TMOD_Pmax):
-    UDC_min_MOD = UmmpMOD * (1 + (TMOD_Pmax * (70-25) / 100))
-    return UDC_min_MOD
+def count_udc_min_mod(ummp_mod, tmod_p_max):
+    udc_min_mod = ummp_mod * (1 + (tmod_p_max * (70 - 25) / 100))
+    return udc_min_mod
+
 
 # Calculates maximum short-circuit current/Výpočet maximálního zkratového proudu
-def count_IDC_max_STR(ISC, TMOD_short):
-    IDC_max_STR = ISC * (1 + (TMOD_short * (70-25)) / 100)
-    return IDC_max_STR
+def count_idc_max_str(isc, tmod_short):
+    idc_max_str = isc * (1 + (tmod_short * (70 - 25)) / 100)
+    return idc_max_str
+
 
 # Calculates maximum panel count per string/Výpočet maximálního počtu panelů na string
-def count_max_panel(max_input_voltage, UDC_max_MOD):
-    panel_max_fl = max_input_voltage / UDC_max_MOD
+def count_max_panel(max_input_voltage, udc_max_mod):
+    panel_max_fl = max_input_voltage / udc_max_mod
     panel_max = math.floor(panel_max_fl)
     return panel_max
 
+
 # Calculates minimum panel count per string/Výpočet minimálního počtu panelů na string
-def count_min_panel(min_input_voltage, UDC_min_MOD):
-    panel_min_fl = min_input_voltage / UDC_min_MOD
+def count_min_panel(min_input_voltage, udc_min_mod):
+    panel_min_fl = min_input_voltage / udc_min_mod
     panel_min = math.ceil(panel_min_fl)
     return panel_min
 
+
 # Calculates optimal panel count per string/Výpočet optimálního počtu panelů na string
-def count_optimal_panel(opt_input_voltage, UmmpMOD):
-    panel_optimal_fl = opt_input_voltage / UmmpMOD
+def count_optimal_panel(opt_input_voltage, ummp_mod):
+    panel_optimal_fl = opt_input_voltage / ummp_mod
     panel_optimal = round(panel_optimal_fl)
     return panel_optimal
 
 
 # Calculates strings for lowest possible count of mppts
-def count_strings_for_lowest_mppts(UocMOD, TMOD, UmmpMOD, TMOD_pMax, max_input_voltage,
+def count_strings_for_lowest_mppts(uoc_mod, tmod, ummp_mod, tmod_p_max, max_input_voltage,
                                    min_input_voltage, max_inverter_count, panel_count):
     # Typical mppt count for one inverter, can be different if Sungrow inverters are used
     mppt_count = 2
     result_low_mppts = []
 
-    UDC_max_MOD = count_UDC_max_MOD(UocMOD, TMOD)
-    UDC_min_MOD = count_UDC_min_MOD(UmmpMOD, TMOD_pMax)
+    udc_max_mod = count_udc_max_mod(uoc_mod, tmod)
+    udc_min_mod = count_udc_min_mod(ummp_mod, tmod_p_max)
     # IDC_max_STR = count_IDC_max_STR(ISC, TMOD_short)
 
-    max_panel = count_max_panel(max_input_voltage, UDC_max_MOD)
-    min_panel = count_min_panel(min_input_voltage, UDC_min_MOD)
+    max_panel = count_max_panel(max_input_voltage, udc_max_mod)
+    min_panel = count_min_panel(min_input_voltage, udc_min_mod)
     # opt_panel = count_optimal_panel(opt_input_voltage, UmmpMOD)
 
     # Create alert in js for this exception??
@@ -178,11 +184,9 @@ def count_strings_for_lowest_mppts(UocMOD, TMOD, UmmpMOD, TMOD_pMax, max_input_v
 
     # List to be filled based on minimal and maximal count of mppts, reversed - every tuple should be filled from
     # the biggest number, than move to the lower
-    panel_range = list(range(min_panel, max_panel + 1))[::-1]
+    # panel_range = list(range(min_panel, max_panel + 1))[::-1]
 
     remainder_panel = panel_count
-
-    i = 0
 
     for _ in range(max_inverter_count):
         if remainder_panel >= max_panel * mppt_count:
@@ -308,6 +312,7 @@ class ResultsView(LoginRequiredMixin, View):
         return render(request, "results.html", {"results": results, "string_pairs": string_pairs,
                                                 "project": project, "solution": solution})
 
+
 # View for saving new inverter to the database
 class AddInverterView(LoginRequiredMixin, View):
     def get(self, request):
@@ -323,17 +328,19 @@ class AddInverterView(LoginRequiredMixin, View):
             max_mppt_count = form.cleaned_data['max_mppt_count']
 
             Inverter.objects.create(name=name, opt_input_voltage=opt_input_voltage,
-                                             min_input_voltage=min_input_voltage,
-                                             max_input_voltage=max_input_voltage, max_mppt_count=max_mppt_count)
+                                    min_input_voltage=min_input_voltage,
+                                    max_input_voltage=max_input_voltage, max_mppt_count=max_mppt_count)
             return redirect('inverters')
         else:
             return render(request, 'add_inverter.html', {'form': form})
+
 
 # Displays all inverters in database
 class InvertersView(LoginRequiredMixin, View):
     def get(self, request):
         inverters = Inverter.objects.all()
         return render(request, "inverters.html", {"inverters": inverters})
+
 
 # View for editing existing inverter in database
 class InverterEditView(LoginRequiredMixin, View):
@@ -377,20 +384,20 @@ class AddPanelView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'add_panel.html')
 
-    def post(self,request):
+    def post(self, request):
         form = PanelForm(request.POST)
         if form.is_valid():
             name = form.cleaned_data['name']
-            UocMOD_volt = form.cleaned_data['UocMOD_volt']
-            TMOD_percent = form.cleaned_data['TMOD_percent']
-            UmmpMOD_volt = form.cleaned_data['UmmpMOD_volt']
-            TMOD_pMax_percent = form.cleaned_data['TMOD_pMax_percent']
-            ISC_amper = form.cleaned_data['ISC_amper']
-            TMOD_short_percent = form.cleaned_data['TMOD_short_percent']
+            uoc_mod_volt = form.cleaned_data['uoc_mod_volt']
+            tmod_percent = form.cleaned_data['tmod_percent']
+            ummp_mod_volt = form.cleaned_data['ummp_mod_volt']
+            tmod_p_max_percent = form.cleaned_data['tmod_p_max_percent']
+            isc_amper = form.cleaned_data['isc_amper']
+            tmod_short_percent = form.cleaned_data['tmod_short_percent']
 
-            Panel.objects.create(name=name, UocMOD_volt=UocMOD_volt, TMOD_percent=TMOD_percent,
-                                 UmmpMOD_volt=UmmpMOD_volt, TMOD_pMax_percent=TMOD_pMax_percent,
-                                 ISC_amper=ISC_amper, TMOD_short_percent=TMOD_short_percent)
+            Panel.objects.create(name=name, uoc_mod_volt=uoc_mod_volt, tmod_percent=tmod_percent,
+                                 ummp_mod_volt=ummp_mod_volt, tmod_p_max_percent=tmod_p_max_percent,
+                                 isc_amper=isc_amper, tmod_short_percent=tmod_short_percent)
             return redirect('panels')
         else:
             print(form.errors)
@@ -403,12 +410,12 @@ class PanelEditView(LoginRequiredMixin, View):
         panel = Panel.objects.get(pk=pk)
         form = PanelForm(initial={
             'name': panel.name,
-            'UocMOD_volt': panel.UocMOD_volt,
-            'TMOD_percent': panel.TMOD_percent,
-            'UmmpMOD_volt': panel.UmmpMOD_volt,
-            'TMOD_pMax_percent': panel.TMOD_pMax_percent,
-            'ISC_amper': panel.ISC_amper,
-            'TMOD_short_percent': panel.TMOD_short_percent,
+            'uoc_mod_volt': panel.uoc_mod_volt,
+            'tmod_percent': panel.tmod_percent,
+            'ummp_mod_volt': panel.ummp_mod_volt,
+            'tmod_p_max_percent': panel.tmod_p_max_percent,
+            'isc_amper': panel.isc_amper,
+            'tmod_short_percent': panel.tmod_short_percent,
         })
         return render(request, 'edit_panel.html', {'form': form})
 
@@ -417,12 +424,12 @@ class PanelEditView(LoginRequiredMixin, View):
         form = PanelForm(request.POST)
         if form.is_valid():
             panel.name = form.cleaned_data['name']
-            panel.UocMOD_volt = form.cleaned_data['UocMOD_volt']
-            panel.TMOD_percent = form.cleaned_data['TMOD_percent']
-            panel.UmmpMOD_volt = form.cleaned_data['UmmpMOD_volt']
-            panel.TMOD_pMax_percent = form.cleaned_data['TMOD_pMax_percent']
-            panel.ISC_amper = form.cleaned_data['ISC_amper']
-            panel.TMOD_short_percent = form.cleaned_data['TMOD_short_percent']
+            panel.uoc_mod_volt = form.cleaned_data['uoc_mod_volt']
+            panel.tmod_percent = form.cleaned_data['tmod_percent']
+            panel.ummp_mod_volt = form.cleaned_data['ummp_mod_volt']
+            panel.tmod_p_max_percent = form.cleaned_data['tmod_p_max_percent']
+            panel.isc_amper = form.cleaned_data['isc_amper']
+            panel.tmod_short_percent = form.cleaned_data['tmod_short_percent']
             panel.save()
             return redirect('panels')
         else:
@@ -436,6 +443,7 @@ class PanelDeleteView(LoginRequiredMixin, View):
         panel = get_object_or_404(Panel, pk=pk)
         panel.delete()
         return redirect('panels')
+
 
 # Displays all panels in database
 class PanelsView(LoginRequiredMixin, View):
@@ -491,7 +499,6 @@ class RegisterView(View):
 class ProfileView(LoginRequiredMixin, View):
     def get(self, request):
         user = request.user
-        engineers = []
         solutions = []
         projects = []
 
@@ -507,18 +514,15 @@ class ProfileView(LoginRequiredMixin, View):
             return render(request, 'profile.html', {'solutions': solutions,
                                                     'projects': projects})
 
-        # return render(request, 'profile.html', {'engineers': engineers, 'solutions': solutions,
-        #                                         'projects': projects})
-
 
 # View of specific engineer's projects for group leaders
 class EngineerProjectView(LoginRequiredMixin, View):
-        def get(self, request, eng_id):
-            solutions = Solution.objects.filter(owner_id=eng_id)
-            project_ids = SolutionProject.objects.filter(solution__in=solutions).values_list('project_id', flat=True)
-            projects = Project.objects.filter(id__in=project_ids)
+    def get(self, request, eng_id):
+        solutions = Solution.objects.filter(owner_id=eng_id)
+        project_ids = SolutionProject.objects.filter(solution__in=solutions).values_list('project_id', flat=True)
+        projects = Project.objects.filter(id__in=project_ids)
 
-            return render(request, 'engineer_project.html', {'projects': projects, 'eng_id': eng_id})
+        return render(request, 'engineer_project.html', {'projects': projects, 'eng_id': eng_id})
 
 
 # View of solutions for particular project

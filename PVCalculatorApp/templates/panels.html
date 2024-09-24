@@ -14,12 +14,12 @@
                     <h3>{{ panel.name }}</h3>
                 </div>
             <div id="details-{{ panel.id }}" class="list-tile-details" style="display: none">
-                <p>UocMOD: {{ panel.UocMOD_volt }} V</p>
-                <p>TMOD: {{ panel.TMOD_percent }} %</p>
-                <p>UmmpMOD: {{ panel.UmmpMOD_volt }} V</p>
-                <p>TMOD Pmax: {{ panel.TMOD_pMax_percent }} %</p>
-                <p>ISC: {{ panel.ISC_amper }} A</p>
-                <p>TMOD short: {{ panel.TMOD_short_percent }} %</p>
+                <p>UocMOD: {{ panel.uoc_mod_volt }} V</p>
+                <p>TMOD: {{ panel.tmod_percent }} %</p>
+                <p>UmmpMOD: {{ panel.ummp_mod_volt }} V</p>
+                <p>TMOD Pmax: {{ panel.tmod_p_max_percent }} %</p>
+                <p>ISC: {{ panel.isc_amper }} A</p>
+                <p>TMOD short: {{ panel.tmod_short_percent }} %</p>
                 <div class="button-container">
                     <a href="{% url 'edit_panel' panel.id %}" class="button">Upravit</a>
                     <form method="post" action="{% url 'delete_panel' panel.id %}">

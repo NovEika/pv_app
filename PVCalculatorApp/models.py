@@ -72,17 +72,17 @@ class Inverter(models.Model):
 class Panel(models.Model):
     name = models.CharField(max_length=32)
     #napětí FV modulu naprázdno
-    UocMOD_volt = models.FloatField()
+    uoc_mod_volt = models.FloatField()
     #teplotní koeficient modulu
-    TMOD_percent = models.FloatField()
+    tmod_percent = models.FloatField()
     #napětí FV modulu při max výkonu
-    UmmpMOD_volt = models.FloatField()
+    ummp_mod_volt = models.FloatField()
     #teplotní koeficient modulu Pmax
-    TMOD_pMax_percent = models.FloatField()
+    tmod_p_max_percent = models.FloatField()
     #proud nakrátko
-    ISC_amper = models.FloatField()
+    isc_amper = models.FloatField()
     #teplotní koeficient proudu nakrátko
-    TMOD_short_percent = models.FloatField()
+    tmod_short_percent = models.FloatField()
 
 
 # Name of project or location
@@ -92,9 +92,9 @@ class Project(models.Model):
 
 # Solution model is connected to string pairs, shows max, min and optimal panel count for solution
 class Solution(models.Model):
-    nDCmaxINV = models.IntegerField()
-    nDCminINV = models.IntegerField()
-    nDCoptINV = models.IntegerField()
+    ndc_max_inv = models.IntegerField()
+    ndc_min_inv = models.IntegerField()
+    ndc_opt_inv = models.IntegerField()
     owner = models.ForeignKey(MyUser, on_delete=models.CASCADE, related_name='solutions')
 
 

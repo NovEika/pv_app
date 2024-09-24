@@ -28,7 +28,7 @@ def test_invalid_inverter_creation():
     with pytest.raises(ValueError):
         Inverter.objects.create(
             name="Invalid Inverter",
-            opt_input_voltage="tvojemama",
+            opt_input_voltage="abcde",
             max_input_voltage=600.0,
             min_input_voltage=100.0,
             max_mppt_count=24
@@ -46,7 +46,7 @@ def test_create_myuser():
 
 @pytest.mark.django_db
 def test_login_myuser(client):
-    user = MyUser.objects.create_user(
+    MyUser.objects.create_user(
         email="testuser@testuser.com",
         password="password1234",
     )
@@ -58,7 +58,7 @@ def test_login_myuser(client):
 
 @pytest.mark.django_db
 def test_calculator_view_post_manual_input(client):
-    user = MyUser.objects.create_user(email="testuser@testuser.com", password="password1234")
+    MyUser.objects.create_user(email="testuser@testuser.com", password="password1234")
     client.login(email="testuser@testuser.com", password="password1234")
 
     data = {
@@ -66,12 +66,12 @@ def test_calculator_view_post_manual_input(client):
         'min_input_voltage': 180.0,
         'max_input_voltage': 1100.0,
         'max_mppt_count': 12,
-        'UocMOD_volt': 37.5,
-        'TMOD_percent': -0.36,
-        'UmmpMOD_volt': 31.5,
-        'TMOD_pMax_percent': -0.29,
-        'ISC_amper': 13.93,
-        'TMOD_short_percent': 0.079,
+        'uoc_mod_volt': 37.5,
+        'tmod_percent': -0.36,
+        'ummp_mod_volt': 31.5,
+        'tmod_p_max_percent': -0.29,
+        'isc_amper': 13.93,
+        'tmod_short_percent': 0.079,
         'panel_count': 386,
         'project_name': 'Test project',
         'manual_input': '1'
@@ -83,19 +83,19 @@ def test_calculator_view_post_manual_input(client):
 
 @pytest.mark.django_db
 def test_calculator_view_post_model_selection(client):
-    user = MyUser.objects.create_user(
+    MyUser.objects.create_user(
         email="testuser@testuser.com",
         password="password1234",
     )
     client.login(email="testuser@testuser.com", password="password1234")
 
     panel = Panel.objects.create(
-        UocMOD_volt=37.5,
-        TMOD_percent=0.36,
-        UmmpMOD_volt=31.5,
-        TMOD_pMax_percent=0.29,
-        ISC_amper=13.93,
-        TMOD_short_percent=0.079,
+        uoc_mod_volt=37.5,
+        tmod_percent=0.36,
+        ummp_mod_volt=31.5,
+        tmod_p_max_percent=0.29,
+        isc_amper=13.93,
+        tmod_short_percent=0.079,
     )
 
     inverter = Inverter.objects.create(

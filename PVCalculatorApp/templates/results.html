@@ -10,9 +10,9 @@
 {% block content %}
     <h2>{{ project.project_name }}</h2>
     <div class="form-container">
-        <p>Maximální počet panelů na string: {{ solution.nDCmaxINV }}</p>
-        <p>Minimální počet panelů na string: {{ solution.nDCminINV }}</p>
-        <p>Optimální počet panelů na string: {{ solution.nDCoptINV }}</p>
+        <p>Maximální počet panelů na string: {{ solution.ndc_max_inv }}</p>
+        <p>Minimální počet panelů na string: {{ solution.ndc_min_inv }}</p>
+        <p>Optimální počet panelů na string: {{ solution.ndc_opt_inv }}</p>
     </div>
     <h3>{{ string_pairs.first.result }}</h3>
     <table>

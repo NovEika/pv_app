@@ -13,12 +13,12 @@ class CalculatorForm(forms.Form):
     max_input_voltage = forms.FloatField(required=True)
     max_mppt_count = forms.IntegerField(required=True)
 
-    UocMOD_volt = forms.FloatField(required=True)
-    TMOD_percent = forms.FloatField(required=True)
-    UmmpMOD_volt = forms.FloatField(required=True)
-    TMOD_pMax_percent = forms.FloatField(required=True)
-    ISC_amper = forms.FloatField(required=True)
-    TMOD_short_percent = forms.FloatField(required=True)
+    uoc_mod_volt = forms.FloatField(required=True)
+    tmod_percent = forms.FloatField(required=True)
+    ummp_mod_volt = forms.FloatField(required=True)
+    tmod_p_max_percent = forms.FloatField(required=True)
+    isc_amper = forms.FloatField(required=True)
+    tmod_short_percent = forms.FloatField(required=True)
 
     panel_count = forms.IntegerField(required=True)
 
@@ -35,12 +35,12 @@ class InverterForm(forms.Form):
 class PanelForm(forms.Form):
     # Form used to input send save data about PV panels
     name = forms.CharField(required=True)
-    UocMOD_volt = forms.FloatField(required=True)
-    TMOD_percent = forms.FloatField(required=True)
-    UmmpMOD_volt = forms.FloatField(required=True)
-    TMOD_pMax_percent = forms.FloatField(required=True)
-    ISC_amper = forms.FloatField(required=True)
-    TMOD_short_percent = forms.FloatField(required=True)
+    uoc_mod_volt = forms.FloatField(required=True)
+    tmod_percent = forms.FloatField(required=True)
+    ummp_mod_volt = forms.FloatField(required=True)
+    tmod_p_max_percent = forms.FloatField(required=True)
+    isc_amper = forms.FloatField(required=True)
+    tmod_short_percent = forms.FloatField(required=True)
 
 
 
