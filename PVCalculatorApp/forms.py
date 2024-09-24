@@ -5,6 +5,7 @@ from PVCalculatorApp.models import MyUser
 
 
 class CalculatorForm(forms.Form):
+    # Form used to input and validate data for various electrical calculations
     project_name = forms.CharField()
 
     opt_input_voltage = forms.FloatField(required=True)
@@ -23,6 +24,7 @@ class CalculatorForm(forms.Form):
 
 
 class InverterForm(forms.Form):
+    # Form used to input and save data about inverters
     name = forms.CharField(required=True)
     opt_input_voltage = forms.FloatField(required=True)
     min_input_voltage = forms.FloatField(required=True)
@@ -31,6 +33,7 @@ class InverterForm(forms.Form):
 
 
 class PanelForm(forms.Form):
+    # Form used to input send save data about PV panels
     name = forms.CharField(required=True)
     UocMOD_volt = forms.FloatField(required=True)
     TMOD_percent = forms.FloatField(required=True)
@@ -42,6 +45,7 @@ class PanelForm(forms.Form):
 
 
 class MyUserRegistrationForm(UserCreationForm):
+    # Form used to registrate a new user
     email = forms.EmailField(required=True)
     group_leader = forms.ModelChoiceField(queryset=MyUser.objects.filter(role=MyUser.GROUP_LEADER),
                                           required=False, label="Group Leader")
