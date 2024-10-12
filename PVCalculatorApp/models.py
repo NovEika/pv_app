@@ -1,7 +1,8 @@
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser, PermissionsMixin
-from django.db import models
 from django.contrib.auth.models import Group, Permission
+from django.db import models
+
 
 # Create your models here.
 
@@ -49,17 +50,18 @@ class MyUser(AbstractUser, PermissionsMixin):
     group_leader = models.ForeignKey('self', on_delete=models.SET_NULL, related_name='engineers', null=True, blank=True)
 
     groups = models.ManyToManyField(Group, related_name='custom_user_groups', blank=True,
-                                    help_text = 'The groups this user belongs to.')
+                                    help_text='The groups this user belongs to.')
     user_permissions = models.ManyToManyField(Permission, related_name='custom_user_permissions', blank=True,
-                                              help_text = 'Specific permissions for this user.')
+                                              help_text='Specific permissions for this user.')
 
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
 
+
 # Inverter class maintains optimal, maximum and minimum voltage of inverter and mpp tracker count
-#třída střídače pro zadání optimáního, maximálního a minimálního napětí střídače, a maximálního počtu mpp trackerů
+# třída střídače pro zadání optimáního, maximálního a minimálního napětí střídače, a maximálního počtu mpp trackerů
 class Inverter(models.Model):
     name = models.CharField(max_length=32)
     opt_input_voltage = models.FloatField()
@@ -71,17 +73,17 @@ class Inverter(models.Model):
 # Panel class maintains open-circuit and maximum power voltage, temp coefficients, short-circuit current
 class Panel(models.Model):
     name = models.CharField(max_length=32)
-    #napětí FV modulu naprázdno
+    # napětí FV modulu naprázdno
     uoc_mod_volt = models.FloatField()
-    #teplotní koeficient modulu
+    # teplotní koeficient modulu
     tmod_percent = models.FloatField()
-    #napětí FV modulu při max výkonu
+    # napětí FV modulu při max výkonu
     ummp_mod_volt = models.FloatField()
-    #teplotní koeficient modulu Pmax
+    # teplotní koeficient modulu Pmax
     tmod_p_max_percent = models.FloatField()
-    #proud nakrátko
+    # proud nakrátko
     isc_amper = models.FloatField()
-    #teplotní koeficient proudu nakrátko
+    # teplotní koeficient proudu nakrátko
     tmod_short_percent = models.FloatField()
 
 
@@ -108,9 +110,11 @@ class SolutionProject(models.Model):
 # Result choices determine the type of result user is getting
 class StringPair(models.Model):
     LOW_MPPT = 'low_mppt'
+    USER_STRING = 'user_string'
 
     RESULT_CHOICES = [
         (LOW_MPPT, 'low_mppt'),
+        (USER_STRING, 'user_string'),
     ]
 
     string1 = models.IntegerField()

@@ -9,7 +9,7 @@ class CalculatorForm(forms.Form):
     project_name = forms.CharField()
 
     opt_input_voltage = forms.FloatField(required=True)
-    min_input_voltage =forms.FloatField(required=True)
+    min_input_voltage = forms.FloatField(required=True)
     max_input_voltage = forms.FloatField(required=True)
     max_mppt_count = forms.IntegerField(required=True)
 
@@ -21,6 +21,8 @@ class CalculatorForm(forms.Form):
     tmod_short_percent = forms.FloatField(required=True)
 
     panel_count = forms.IntegerField(required=True)
+
+    user_string_length = forms.IntegerField(required=False)
 
 
 class InverterForm(forms.Form):
@@ -43,7 +45,6 @@ class PanelForm(forms.Form):
     tmod_short_percent = forms.FloatField(required=True)
 
 
-
 class MyUserRegistrationForm(UserCreationForm):
     # Form used to registrate a new user
     email = forms.EmailField(required=True)
@@ -59,7 +60,7 @@ class MyUserRegistrationForm(UserCreationForm):
         role = cleaned_data.get('role')
         group_leader = cleaned_data.get('group_leader')
 
-        #if role is 'engineer', group_leader required
+        # if role is 'engineer', group_leader required
         if role == MyUser.ENGINEER and not group_leader:
             raise forms.ValidationError("If you select 'Engineer', you must choose your group leader!")
 
@@ -75,4 +76,3 @@ class MyUserRegistrationForm(UserCreationForm):
         if commit:
             user.save()
         return user
-

@@ -8,85 +8,100 @@
 {% endblock %}
 
 {% block content %}
-<h1>String Calculator</h1>
-    
-<div class="form-container">
-    <div class="radio-group">
-        <input type="radio" id="manual" name="data_type" value="Zadat ručně">
-        <label for="manual">Zadat ručně</label>
-        <input type="radio" id="database" name="data_type" value="Vybrat z databáze">
-        <label for="database">Vybrat z databáze</label><br><br>
+    <h1>String Calculator</h1>
+
+    <div class="form-container">
+        <div class="radio-group">
+            <input type="radio" id="manual" name="data_type" value="Zadat ručně">
+            <label for="manual">Zadat ručně</label>
+            <input type="radio" id="database" name="data_type" value="Vybrat z databáze">
+            <label for="database">Vybrat z databáze</label><br><br>
+        </div>
+
+        <form method="post" id="manual_form" style="display:none">
+            {% csrf_token %}
+            <label for="project_name">Název projektu</label>
+            <input type="text" name="project_name" id="project_name">
+
+            <h2>Střídač</h2>
+            <label for="opt_input_voltage">Optimální napětí na vstupu</label>
+            <input type="number" id="opt_input_voltage" name="opt_input_voltage"
+                   placeholder="Optimální napětí ve V"><br>
+            <label for="min_input_voltage">Min napětí na vstupu</label>
+            <input type="number" id="min_input_voltage" name="min_input_voltage"
+                   placeholder="Minimální napětí ve V"><br>
+            <label for="max_input_voltage">Maximální napětí na vstupu</label>
+            <input type="number" id="max_input_voltage" name="max_input_voltage"
+                   placeholder="Maximální napětí ve V"><br>
+            <label for="max_mppt_count">Počet mpp trackerů</label>
+            <input type="number" id="max_mppt_count" name="max_mppt_count" placeholder="Počet mppt"><br>
+            <br>
+
+            <h2>Panel</h2>
+            <label for="uoc_mod_volt">Napětí naprázdno</label>
+            <input type="number" step=0.0001 id="uoc_mod_volt" name="uoc_mod_volt" placeholder="UocMOD V"><br>
+            <label for="tmod_percent">Teplotní koeficient FV modulu</label>
+            <input type="number" step=0.0001 id="tmod_percent" name="tmod_percent" placeholder="TMOD %"><br>
+            <label for="ummp_mod_volt">Napětí při maximálním výkonu FV modulu</label>
+            <input type="number" step=0.0001 id="ummp_mod_volt" name="ummp_mod_volt" placeholder="UmmpMOD V"><br>
+            <label for="tmod_p_max_percent">Teplotní koeficient PMax modulu</label>
+            <input type="number" step=0.0001 id="tmod_p_max_percent" name="tmod_p_max_percent"
+                   placeholder="TMOD PMax %"><br>
+            <label for="isc_amper">Proud nakrátko FV modulu</label>
+            <input type="number" step=0.0001 id="isc_amper" name="isc_amper" placeholder="ISC A"><br>
+            <label for="tmod_short_percent">Teplotní koeficient FV modulu nakrátko</label>
+            <input type="number" step=0.0001 id="tmod_short_percent" name="tmod_short_percent"
+                   placeholder="TMOD nakrátko %"><br>
+            <br>
+            <label for="panel_count">Celkový počet panelů</label>
+            <input type="number" id="panel_count" name="panel_count" placeholder="Celkový počet panelů">
+            <br>
+            <label for="user_string_length">Požadovaná délka stringu</label>
+            <input type="number" id="user_string_length" name="user_string_length"
+                   placeholder="String (nepovinné)">
+            <br><br>
+            <div class="button-container">
+                <input type="submit" value="Vypočítat" class="button">
+            </div>
+        </form>
+        <br>
+
+        <form method="post" id="database_form" style="display: none">
+            {% csrf_token %}
+            <label for="project_name">Název projektu</label>
+            <input type="text" name="project_name" id="project_name">
+
+            <h2>Střídač</h2>
+            <select name="inverter_db" class="form-control" id="inverter_db">
+                {% for inverter in inverters %}
+                    <option value="{{ inverter.id }}">{{ inverter.name }}</option>
+                {% endfor %}
+            </select>
+            <br>
+
+            <h2>Panel</h2>
+            <select name="panel_db" class="form-control" id="panel_db">
+                {% for panel in panels %}
+                    <option value="{{ panel.id }}">{{ panel.name }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="panel_count_db">Celkový počet panelů</label>
+            <input type="number" id="panel_count_db" name="panel_count" placeholder="Celkový počet panelů">
+            <br>
+            <label for="user_string_length">Požadovaná délka stringu</label>
+            <input type="number" id="user_string_length" name="user_string_length"
+                   placeholder="String (nepovinné)">
+            <br><br>
+            <div class="button-container">
+                <input type="submit" value="Vypočítat" class="button">
+            </div>
+        </form>
+        <br>
     </div>
-
-    <form method="post" id="manual_form" style="display:none">
-        {% csrf_token %}
-         <label for="project_name">Název projektu</label>
-        <input type="text" name="project_name" id="project_name">
-        
-        <h2>Střídač</h2>
-        <label for="opt_input_voltage">Optimální napětí na vstupu</label>
-        <input type="number" id="opt_input_voltage" name="opt_input_voltage" placeholder="Optimální napětí ve V"><br>
-        <label for="min_input_voltage">Min napětí na vstupu</label>
-        <input type="number" id="min_input_voltage" name="min_input_voltage" placeholder="Minimální napětí ve V"><br>
-        <label for="max_input_voltage">Maximální napětí na vstupu</label>
-        <input type="number" id="max_input_voltage" name="max_input_voltage" placeholder="Maximální napětí ve V"><br>
-        <label for="max_mppt_count">Počet mpp trackerů</label>
-        <input type="number" id="max_mppt_count" name="max_mppt_count" placeholder="Počet mppt"><br>
-        <br>
-
-        <h2>Panel</h2>
-        <label for="uoc_mod_volt">Napětí naprázdno</label>
-        <input type="number" step=0.0001 id="uoc_mod_volt" name="uoc_mod_volt" placeholder="UocMOD V"><br>
-        <label for="tmod_percent">Teplotní koeficient FV modulu</label>
-        <input type="number" step=0.0001 id="tmod_percent" name="tmod_percent" placeholder="TMOD %"><br>
-        <label for="ummp_mod_volt">Napětí při maximálním výkonu FV modulu</label>
-        <input type="number" step=0.0001 id="ummp_mod_volt" name="ummp_mod_volt" placeholder="UmmpMOD V"><br>
-        <label for="tmod_p_max_percent">Teplotní koeficient PMax modulu</label>
-        <input type="number" step=0.0001 id="tmod_p_max_percent" name="tmod_p_max_percent" placeholder="TMOD PMax %"><br>
-        <label for="isc_amper">Proud nakrátko FV modulu</label>
-        <input type="number" step=0.0001 id="isc_amper" name="isc_amper" placeholder="ISC A"><br>
-        <label for="tmod_short_percent">Teplotní koeficient FV modulu nakrátko</label>
-        <input type="number" step=0.0001 id="tmod_short_percent" name="tmod_short_percent" placeholder="TMOD nakrátko %"><br>
-        <br>
-        <label for="panel_count">Celkový počet panelů</label>
-        <input type="number" id="panel_count" name="panel_count" placeholder="Celkový počet panelů">
-        <br><br>
-         <div class="button-container">
-            <input type="submit" value="Vypočítat" class="button">
-        </div>
-    </form><br>
-
-    <form method="post" id="database_form" style="display: none">
-        {% csrf_token %}
-        <label for="project_name">Název projektu</label>
-        <input type="text" name="project_name" id="project_name">
-    
-        <h2>Střídač</h2>
-        <select name="inverter_db" class="form-control" id="inverter_db">
-            {% for inverter in inverters %}
-            <option value="{{ inverter.id }}">{{ inverter.name }}</option>
-            {% endfor %}
-        </select>
-        <br>
-
-        <h2>Panel</h2>
-        <select name="panel_db" class="form-control" id="panel_db">
-            {% for panel in panels %}
-            <option value="{{ panel.id }}">{{ panel.name }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <label for="panel_count_db">Celkový počet panelů</label>
-        <input type="number" id="panel_count_db" name="panel_count" placeholder="Celkový počet panelů">
-        <br><br>
-         <div class="button-container">
-            <input type="submit" value="Vypočítat" class="button">
-        </div>
-    </form><br>
-</div>
-{% if error_messages %}
-    {% for message in error_messages %}
-        <p>{{ message }}</p>
-    {% endfor %}
-{% endif %}
+    {% if error_messages %}
+        {% for message in error_messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endif %}
 {% endblock %}

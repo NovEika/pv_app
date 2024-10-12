@@ -1,4 +1,5 @@
 import math
+from typing import List, Tuple, cast
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -43,6 +44,7 @@ class CalculatorView(LoginRequiredMixin, View):
                 isc = form.cleaned_data['isc_amper']
                 tmod_short = form.cleaned_data['tmod_short_percent']
                 panel_count = form.cleaned_data['panel_count']
+                user_string_length = form.cleaned_data['user_string_length']
                 project_name = form.cleaned_data['project_name']
 
             else:
@@ -68,6 +70,11 @@ class CalculatorView(LoginRequiredMixin, View):
 
             panel_count = int(request.POST.get('panel_count'))
             project_name = str(request.POST.get('project_name'))
+            user_string_length = request.POST.get('user_string_length')
+            try:
+                user_string_length = int(user_string_length)
+            except ValueError:
+                user_string_length = None
 
             initial_data = {
                 'opt_input_voltage': inverter.opt_input_voltage,
@@ -81,6 +88,7 @@ class CalculatorView(LoginRequiredMixin, View):
                 'isc_amper': panel.isc_amper,
                 'tmod_short_percent': panel.tmod_short_percent,
                 'panel_count': panel_count,
+                'user_string_length': user_string_length if user_string_length else 0,
             }
 
             form = CalculatorForm(initial=initial_data)
@@ -91,14 +99,20 @@ class CalculatorView(LoginRequiredMixin, View):
             form = CalculatorForm(request.POST)
             return render(request, 'calculator.html', {'form': form})
 
-        result_low_mppts = count_strings_for_lowest_mppts(uoc_mod, tmod, ummp_mod, tmod_p_max, max_input_voltage,
-                                                          min_input_voltage, max_mppt_count, panel_count)
-
         udc_max_mod = count_udc_max_mod(uoc_mod, tmod)
         udc_min_mod = count_udc_min_mod(ummp_mod, tmod_p_max)
         ndc_max_inv = count_max_panel(max_input_voltage, udc_max_mod)
         ndc_min_inv = count_min_panel(min_input_voltage, udc_min_mod)
         ndc_opt_inv = count_optimal_panel(opt_input_voltage, ummp_mod)
+
+        result_low_mppts = count_strings_for_lowest_mppts(uoc_mod, tmod, ummp_mod, tmod_p_max, max_input_voltage,
+                                                          min_input_voltage, max_mppt_count, panel_count)
+
+        if user_string_length is not None:
+            result_user_input_string_length = count_panels_for_user_string_length(user_string_length, panel_count,
+                                                                                  max_mppt_count, ndc_max_inv,
+                                                                                  ndc_min_inv)
+            results.append(result_user_input_string_length)
 
         results.append(result_low_mppts)
 
@@ -114,6 +128,10 @@ class CalculatorView(LoginRequiredMixin, View):
         for result in result_low_mppts:
             StringPair.objects.create(string1=result[0], string2=result[1],
                                       result=StringPair.LOW_MPPT, solution=solution)
+
+        # for result in result_user_input_string_length if result_user_input_string_length is not None else []:
+        #     StringPair.objects.create(string1=result[0], string2=result[1], result=StringPair.USER_STRING,
+        #                               solution=solution)
 
         SolutionProject.objects.create(project=project, solution=solution)
 
@@ -167,7 +185,7 @@ def count_strings_for_lowest_mppts(uoc_mod, tmod, ummp_mod, tmod_p_max, max_inpu
                                    min_input_voltage, max_inverter_count, panel_count):
     # Typical mppt count for one inverter, can be different if Sungrow inverters are used
     mppt_count = 2
-    result_low_mppts = []
+    result = []
 
     udc_max_mod = count_udc_max_mod(uoc_mod, tmod)
     udc_min_mod = count_udc_min_mod(ummp_mod, tmod_p_max)
@@ -182,119 +200,77 @@ def count_strings_for_lowest_mppts(uoc_mod, tmod, ummp_mod, tmod_p_max, max_inpu
     if panel_count > max_panel * mppt_count * max_inverter_count:
         return None
 
-    # List to be filled based on minimal and maximal count of mppts, reversed - every tuple should be filled from
-    # the biggest number, than move to the lower
-    # panel_range = list(range(min_panel, max_panel + 1))[::-1]
-
-    remainder_panel = panel_count
+    remaining_panels = panel_count
 
     for _ in range(max_inverter_count):
-        if remainder_panel >= max_panel * mppt_count:
-            result_low_mppts.append((max_panel,) * mppt_count)
-            remainder_panel -= max_panel * mppt_count
-        elif remainder_panel >= min_panel * mppt_count:
-            optimal_panels_per_string = remainder_panel // mppt_count
-            result_low_mppts.append((optimal_panels_per_string,) * mppt_count)
-            remainder_panel -= optimal_panels_per_string * mppt_count
+        if remaining_panels >= max_panel * mppt_count:
+            result.append((max_panel,) * mppt_count)
+            remaining_panels -= max_panel * mppt_count
+        elif remaining_panels >= min_panel * mppt_count:
+            optimal_panels_per_string = remaining_panels // mppt_count
+            result.append((optimal_panels_per_string,) * mppt_count)
+            remaining_panels -= optimal_panels_per_string * mppt_count
         else:
-            result_low_mppts.append((remainder_panel // mppt_count,) * mppt_count)
-            remainder_panel = 0
+            result.append((remaining_panels // mppt_count,) * mppt_count)
+            remaining_panels = 0
 
     i = 0
-    while remainder_panel > 0:
-        current_tuple = list(result_low_mppts[i])
+    while remaining_panels > 0:
+        current_tuple = list(result[i])
         if current_tuple[0] < max_panel:
             current_tuple[0] += 1
-            remainder_panel -= 1
-        if mppt_count > 1 and current_tuple[1] < max_panel and remainder_panel > 0:
+            remaining_panels -= 1
+        if mppt_count > 1 and current_tuple[1] < max_panel and remaining_panels > 0:
             current_tuple[1] += 1
-            remainder_panel -= 1
-        result_low_mppts[i] = tuple(current_tuple)
+            remaining_panels -= 1
+        result[i] = tuple(current_tuple)
         i = (i + 1) % max_inverter_count
 
-    return result_low_mppts
+    return result
 
 
-# Count strings for optimal string length
-# def count_user_input_mttp(UocMOD, TMOD, UmmpMOD, TMOD_pMax, ISC, TMOD_short, max_input_voltage,
-#                           min_input_voltage, opt_input_voltage, max_inverter_count, panel_count, panel_max, panel_min):
-#     remainder_panel = panel_count
-#     mppt_count = 2
-#     result_user_input = []
-#
-# #     Pokud je zbytek 0, rozpočítat optimální string do všech tuples; zbytek > 0 přidat do všech stringů + 1 nebo zaplnit první;
-# #     zbytek < 0 ubrat ze všech stringů - 1 nebo zkráti poslední
-#     rest_of_panels = remainder_panel - (max_inverter_count * mppt_count * panel_count)
-#     full_optimal_string_inverters = remainder_panel // (panel_count * mppt_count)
-#
-#     for _ in range(full_optimal_string_inverters):
-#         result_user_input.append((panel_count, panel_count))
-#
-#     i = 0
-#     while remainder_panel > 0:
-#
-#
-#
-#
-#     while len(result_user_input) < max_inverter_count:
-#         if rest_of_panels == 0:
-#             for x in range(max_inverter_count):
-#                 result_user_input.append((panel_count, panel_count))
-#                 remainder_panel = 0
-#         elif rest_of_panels < 0:
-#             for x in range(max_inverter_count):
-#                 result_user_input.append((panel_count, panel_count))
-#                 remainder_panel -= panel_count * 2
-#             while remainder_panel < 0:
-#                 for y in range(max_inverter_count - 1, -1, -1):
-#                     if result_user_input[y][0] == panel_min:
-#                         continue
-#                     else:
-#                         result_user_input[y] = tuple(val - 1 for val in result_user_input[y])
-#                         remainder_panel += 2
-#                         break
-#             a = 0
-#             while a < max_inverter_count - 1:
-#                 index_b = a + 1
-#                 if result_user_input[index_b][0] == 0:
-#                     break
-#                 elif (result_user_input[a][0] < panel_count) and (result_user_input[a][0] + result_user_input[index_b][0] < panel_max):
-#                     new_tuple = tuple(
-#                         val_a + val_b for val_a, val_b in zip(result_user_input[a], result_user_input[index_b]))
-#                     result_user_input[a] = new_tuple
-#                     result_user_input[index_b] = (0, 0)
-#                     result_user_input.sort(reverse=True)
-#                     a = 0
-#                 else:
-#                     a += 1
-#
-#         elif rest_of_panels > 0:
-#             for x in range(max_inverter_count):
-#                 result_user_input.append((panel_count, panel_count))
-#                 remainder_panel -= panel_count * mppt_count
-#             while remainder_panel > 0:
-#                 for y in range(max_inverter_count):
-#                     if result_user_input[y][0] == panel_max:
-#                         continue
-#                     else:
-#                         result_user_input[y] = tuple(val + 1 for val in result_user_input[y])
-#                         remainder_panel -= 2
-#                         break
-#             a = 0
-#             while a < max_inverter_count - 1:
-#                 index_b = a + 1
-#                 if result_user_input[index_b][0] == 0:
-#                     break
-#                 elif (result_user_input[a][0] < panel_count) and (
-#                         result_user_input[a][0] + result_user_input[index_b][0] < panel_max):
-#                     new_tuple = tuple(
-#                         val_a + val_b for val_a, val_b in zip(result_user_input[a], result_user_input[index_b]))
-#                     result_user_input[a] = new_tuple
-#                     result_user_input[index_b] = (0, 0)
-#                     result_user_input.sort(reverse=True)
-#                     a = 0
-#                 else:
-#                     a += 1
+def count_panels_for_user_string_length(user_string_length, panel_count, max_inverter_count, panel_max, panel_min):
+    mppt_count = 2
+    remaining_panels = panel_count
+    rest_of_panels = remaining_panels - (max_inverter_count * mppt_count * user_string_length)
+    result: List[Tuple[int, int]] = []
+
+    def adjust_tuples(delta, comparator, reverse=False):
+        idx_range = range(max_inverter_count - 1, -1, -1) if reverse else range(max_inverter_count)
+        for i in idx_range:
+            if comparator(result[i][0]):
+                continue
+            result[i] = tuple(val + delta for val in result[i])
+            nonlocal rest_of_panels
+            rest_of_panels -= 2 * delta
+            if rest_of_panels == 0:
+                break
+
+    def merge_tuples():
+        i = 0
+        while i < max_inverter_count - 1:
+            if result[i + 1][0] == 0:
+                break
+            if result[i][0] < user_string_length and result[i][0] + result[i + 1][0] < panel_max:
+                result[i] = tuple(sum(x) for x in zip(cast(Tuple[int, int], result[i]), result[i + 1]))
+                result[i + 1] = (0, 0)
+                result.sort(reverse=True)
+                i = 0
+            else:
+                i += 1
+
+    for _ in range(max_inverter_count):
+        result.append((user_string_length, user_string_length))
+
+    if rest_of_panels < 0:
+        adjust_tuples(-1, lambda x: x == panel_min, reverse=True)
+        merge_tuples()
+    elif rest_of_panels > 0:
+        adjust_tuples(1, lambda x: x == panel_max)
+        merge_tuples()
+
+    return result
+
 
 # Displays latest results from database based on ids kept in sessions
 class ResultsView(LoginRequiredMixin, View):
@@ -528,6 +504,7 @@ class EngineerProjectView(LoginRequiredMixin, View):
 # View of solutions for particular project
 class SolutionsView(LoginRequiredMixin, View):
     def get(self, request, proj_id, eng_id=None):
+        engineer = None
         if eng_id is not None:
             engineer = MyUser.objects.get(pk=eng_id)
         project = Project.objects.get(pk=proj_id)
@@ -540,7 +517,7 @@ class SolutionsView(LoginRequiredMixin, View):
             'project': project,
             'solutions': solutions,
             'string_pairs': string_pairs,
-            'engineer': engineer if eng_id else None
+            'engineer': engineer
         })
 
 
