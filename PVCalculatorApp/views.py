@@ -13,7 +13,8 @@ from .forms import CalculatorForm, InverterForm, MyUserRegistrationForm, PanelFo
 
 # Create your views here.
 
-# Calculator class calculates optimal string length based on panel and inverter parameters - user input or database selection
+# Calculator class calculates optimal string length based on panel and inverter parameters - user input
+# or database selection
 class CalculatorView(LoginRequiredMixin, View):
     def get(self, request):
         form = CalculatorForm()
@@ -27,6 +28,7 @@ class CalculatorView(LoginRequiredMixin, View):
     def post(self, request):
         results = []
         error_messages = []
+        result_user_input_string_length = []
 
         if 'manual_input' in request.POST:
             # Manual form input from user
@@ -129,9 +131,9 @@ class CalculatorView(LoginRequiredMixin, View):
             StringPair.objects.create(string1=result[0], string2=result[1],
                                       result=StringPair.LOW_MPPT, solution=solution)
 
-        # for result in result_user_input_string_length if result_user_input_string_length is not None else []:
-        #     StringPair.objects.create(string1=result[0], string2=result[1], result=StringPair.USER_STRING,
-        #                               solution=solution)
+        for result in result_user_input_string_length:
+            StringPair.objects.create(string1=result[0], string2=result[1], result=StringPair.USER_STRING,
+                                      solution=solution)
 
         SolutionProject.objects.create(project=project, solution=solution)
 
@@ -235,16 +237,30 @@ def count_panels_for_user_string_length(user_string_length, panel_count, max_inv
     rest_of_panels = remaining_panels - (max_inverter_count * mppt_count * user_string_length)
     result: List[Tuple[int, int]] = []
 
+    def clear_tuples(end_index):
+        nonlocal rest_of_panels
+        if end_index > 0:
+            for i in range(end_index):
+                result[i] = (0, 0)
+            rest_of_panels += end_index * user_string_length
+
     def adjust_tuples(delta, comparator, reverse=False):
+        nonlocal rest_of_panels
         idx_range = range(max_inverter_count - 1, -1, -1) if reverse else range(max_inverter_count)
+
         for i in idx_range:
-            if comparator(result[i][0]):
-                continue
-            result[i] = tuple(val + delta for val in result[i])
-            nonlocal rest_of_panels
-            rest_of_panels -= 2 * delta
+            while result[i][0] > panel_min and result[i][1] > panel_min:
+                if comparator(result[i][0]):
+                    continue
+                result[i] = tuple(val + delta for val in result[i])
+                rest_of_panels -= 2 * delta
+                if rest_of_panels == 0:
+                    break
             if rest_of_panels == 0:
                 break
+
+            elif result[i][0] == panel_min and result[i][1] == panel_min:
+                continue
 
     def merge_tuples():
         i = 0
@@ -259,15 +275,24 @@ def count_panels_for_user_string_length(user_string_length, panel_count, max_inv
             else:
                 i += 1
 
+    def sort_tuples():
+        result.sort(key=lambda x: (x[0], x[1]), reverse=True)
+
     for _ in range(max_inverter_count):
         result.append((user_string_length, user_string_length))
+
+    end_index = rest_of_panels // user_string_length * -1
+    clear_tuples(end_index)
 
     if rest_of_panels < 0:
         adjust_tuples(-1, lambda x: x == panel_min, reverse=True)
         merge_tuples()
+        sort_tuples()
+
     elif rest_of_panels > 0:
         adjust_tuples(1, lambda x: x == panel_max)
         merge_tuples()
+        sort_tuples()
 
     return result
 
@@ -283,9 +308,14 @@ class ResultsView(LoginRequiredMixin, View):
 
         project = Project.objects.get(pk=project_id)
         solution = Solution.objects.get(pk=solution_id)
-        string_pairs = StringPair.objects.filter(solution=solution)
+        low_mppt_string_pairs = StringPair.objects.filter(solution=solution, result=StringPair.LOW_MPPT)
+        user_string_pairs = StringPair.objects.filter(solution=solution, result=StringPair.USER_STRING)
 
-        return render(request, "results.html", {"results": results, "string_pairs": string_pairs,
+        print(low_mppt_string_pairs.first(), user_string_pairs.first())
+
+        return render(request, "results.html", {"results": results,
+                                                "low_mppt_string_pairs": low_mppt_string_pairs,
+                                                "user_string_pairs": user_string_pairs,
                                                 "project": project, "solution": solution})
 
 

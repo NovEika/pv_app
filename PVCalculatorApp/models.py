@@ -109,12 +109,12 @@ class SolutionProject(models.Model):
 # String pairs are part of solution, every solution has many string pairs (based on mppt count for solution)
 # Result choices determine the type of result user is getting
 class StringPair(models.Model):
-    LOW_MPPT = 'low_mppt'
-    USER_STRING = 'user_string'
+    LOW_MPPT = 'low mppt'
+    USER_STRING = 'user string'
 
     RESULT_CHOICES = [
-        (LOW_MPPT, 'low_mppt'),
-        (USER_STRING, 'user_string'),
+        (LOW_MPPT, 'low mppt'),
+        (USER_STRING, 'user string'),
     ]
 
     string1 = models.IntegerField()

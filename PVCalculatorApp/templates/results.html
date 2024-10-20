@@ -8,17 +8,17 @@
 {% endblock %}
 
 {% block content %}
-    <h2>{{ project.project_name }}</h2>
+    <h1>{{ project.project_name }}</h1>
     <div class="form-container">
         <p>Maximální počet panelů na string: {{ solution.ndc_max_inv }}</p>
         <p>Minimální počet panelů na string: {{ solution.ndc_min_inv }}</p>
         <p>Optimální počet panelů na string: {{ solution.ndc_opt_inv }}</p>
     </div>
-    <h3>{{ string_pairs.first.result }}</h3>
+    <h3>{{ low_mppt_string_pairs.first.result }}</h3>
     <table>
     <thead>
         <tr>
-            {% for pair in string_pairs %}
+            {% for pair in low_mppt_string_pairs %}
                 <th>{{ pair.string1 }}</th>
                 <th class="pair_end">{{ pair.string2 }}</th>
             {% endfor %}
@@ -26,11 +26,32 @@
     </thead>
     <tbody>
         <tr>
-             {% for pair in string_pairs %}
+             {% for pair in low_mppt_string_pairs %}
                 <td>{{ forloop.counter }}.1</td>
                 <td class="pair_end">{{ forloop.counter }}.2</td>
              {% endfor %}
         </tr>
     </tbody>
-</table>
+    </table>
+    
+    <h3>{{ user_string_pairs.first.result }}</h3>
+    <table>
+    <thead>
+        <tr>
+            {% for pair in user_string_pairs %}
+                <th>{{ pair.string1 }}</th>
+                <th class="pair_end">{{ pair.string2 }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+             {% for pair in user_string_pairs %}
+                <td>{{ forloop.counter }}.1</td>
+                <td class="pair_end">{{ forloop.counter }}.2</td>
+             {% endfor %}
+        </tr>
+    </tbody>
+    </table>
+    
 {% endblock %}
