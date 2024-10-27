@@ -242,10 +242,10 @@ def count_panels_for_user_string_length(user_string_length, panel_count, max_inv
         if end_index > 0:
             for i in range(end_index):
                 result[i] = (0, 0)
-            rest_of_panels += end_index * user_string_length
+        count_remaining_panels()
 
     def adjust_tuples(delta, comparator, reverse=False):
-        nonlocal rest_of_panels
+        # nonlocal remaining_panels
         idx_range = range(max_inverter_count - 1, -1, -1) if reverse else range(max_inverter_count)
 
         for i in idx_range:
@@ -253,7 +253,7 @@ def count_panels_for_user_string_length(user_string_length, panel_count, max_inv
                 if comparator(result[i][0]):
                     continue
                 result[i] = tuple(val + delta for val in result[i])
-                rest_of_panels -= 2 * delta
+                count_remaining_panels()
                 if rest_of_panels == 0:
                     break
             if rest_of_panels == 0:
@@ -275,24 +275,43 @@ def count_panels_for_user_string_length(user_string_length, panel_count, max_inv
             else:
                 i += 1
 
+    def count_remaining_panels():
+        nonlocal remaining_panels
+        nonlocal rest_of_panels
+        rest_of_panels = remaining_panels - sum(sum(p) for p in result)
+
+    def edit_tuples():
+        def assign_panels(pair_value):
+            """Assigns the panel value to the first (0, 0) tuple found"""
+            first_zero = next((i for i, t in enumerate(result) if t == (0, 0)), None)
+            if first_zero is not None:
+                result[first_zero] = pair_value
+                count_remaining_panels()
+
+        p = rest_of_panels // 2
+        if panel_min < p < panel_max:
+            assign_panels((p, p))
+        elif panel_min < rest_of_panels < panel_max:
+            assign_panels((p, 0))
+
     def sort_tuples():
         result.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
     for _ in range(max_inverter_count):
         result.append((user_string_length, user_string_length))
 
-    end_index = rest_of_panels // user_string_length * -1
+    end_index = rest_of_panels // (user_string_length * mppt_count) * -1
     clear_tuples(end_index)
+    edit_tuples()
 
     if rest_of_panels < 0:
         adjust_tuples(-1, lambda x: x == panel_min, reverse=True)
-        merge_tuples()
-        sort_tuples()
 
     elif rest_of_panels > 0:
         adjust_tuples(1, lambda x: x == panel_max)
-        merge_tuples()
-        sort_tuples()
+
+    merge_tuples()
+    sort_tuples()
 
     return result
 
