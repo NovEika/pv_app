@@ -35,3 +35,18 @@ document.addEventListener('DOMContentLoaded', function(event){
     })
 
 })
+
+function validateEven() {
+    const panelCount = document.getElementsByClassName('panel_count')[0];
+    const errorMessages = document.getElementById('error-messages');
+
+    errorMessages.innerHTML = '';
+
+    if (parseInt(panelCount.value) % 2 !== 0){
+        errorMessages.innerHTML = "<p style='color: red;'>Celkový počet panelů musí být sudé číslo.</p>"
+        panelCount.setCustomValidity('Zadej prosím sudé číslo.');
+    }
+    else {
+        panelCount.setCustomValidity('');
+    }
+}

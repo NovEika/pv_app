@@ -54,7 +54,7 @@
                    placeholder="TMOD nakrátko %"><br>
             <br>
             <label for="panel_count">Celkový počet panelů</label>
-            <input type="number" id="panel_count" name="panel_count" placeholder="Celkový počet panelů">
+            <input class="panel_count" type="number" id="panel_count" min="0" step="2" oninput="validateEven()" name="panel_count" placeholder="Celkový počet panelů">
             <br>
             <label for="user_string_length">Požadovaná délka stringu</label>
             <input type="number" id="user_string_length" name="user_string_length"
@@ -87,7 +87,7 @@
             </select>
             <br>
             <label for="panel_count_db">Celkový počet panelů</label>
-            <input type="number" id="panel_count_db" name="panel_count" placeholder="Celkový počet panelů">
+            <input class="panel_count" type="number" id="panel_count_db" min="0" step="2" oninput="validateEven()" name="panel_count" placeholder="Celkový počet panelů">
             <br>
             <label for="user_string_length">Požadovaná délka stringu</label>
             <input type="number" id="user_string_length" name="user_string_length"
@@ -99,9 +99,11 @@
         </form>
         <br>
     </div>
-    {% if error_messages %}
-        {% for message in error_messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    {% endif %}
+    <div id="error-messages">
+        {% if error_messages %}
+            {% for message in error_messages %}
+                <p>{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
 {% endblock %}
